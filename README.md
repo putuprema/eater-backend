@@ -16,10 +16,13 @@ TBD
 - [MediatR](https://github.com/jbogard/MediatR)
 - [FluentValidation](https://fluentvalidation.net/)
 - [Mapster](https://github.com/MapsterMapper/Mapster)
+- [ImageSharp](https://github.com/SixLabors/ImageSharp)
+- [QRCoder](https://github.com/codebude/QRCoder)
 
 ### TODO
-- [ ] Account microservice
-- [ ] Product microservice
+- [x] Account microservice
+- [x] Product microservice
+- [x] Table microservice
 - [ ] Order microservice
 - [ ] Payment microservice
 - [ ] CI/CD
