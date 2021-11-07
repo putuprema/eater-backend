@@ -1,0 +1,12 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "CosmosDbName": "AccountMicroservice",
+    "CosmosDbConnString": null,
+    "JWT:ValidIssuer": "Eater",
+    "JWT:Secret": null,
+    "JWT:Lifetime": 1800
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "CosmosConfig:DbName": "TableMicroservice",
+    "CosmosConfig:ConnString": null,
+    "BlobStorage:ConnString": null,
+    "BlobStorage:MaxFileSizeMb": 4,
+    "DurableFunctionConfig:FirstRetryIntervalSecond": 3,
+    "DurableFunctionConfig:MaxNumberOfAttempts": 5
+  }
+}
