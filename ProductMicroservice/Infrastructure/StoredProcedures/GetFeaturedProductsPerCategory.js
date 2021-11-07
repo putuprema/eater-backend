@@ -1,7 +1,9 @@
 ﻿function GetFeaturedProductsPerCategory(categoryIdArray) {
-    var collection = getContext().getCollection();
-    var response = getContext().getResponse();
+    function setResponse(data, status = 200, message = "OK") {
+        getContext().getResponse().setBody({ status, message, data });
+    }
 
+    var collection = getContext().getCollection();
     var categoryIds = JSON.parse(categoryIdArray);
     var featuredProductsMap = {};
 
@@ -19,9 +21,5 @@
         if (!isAccepted) throw new Error("The query was not accepted by the server");
     })
 
-    response.setBody(getResponseBody(featuredProductsMap));
-}
-
-function getResponseBody(data, status = 200, message = "OK") {
-    return { status, message, data }
+    setResponse(featuredProductsMap);
 }

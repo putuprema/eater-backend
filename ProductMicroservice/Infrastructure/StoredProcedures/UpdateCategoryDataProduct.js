@@ -1,6 +1,9 @@
 ﻿function UpdateCategoryDataProduct(categoryPayload, continuationPayload) {
+    function setResponse(data, status = 200, message = "OK") {
+        getContext().getResponse().setBody({ status, message, data });
+    }
+
     var collection = getContext().getCollection();
-    var response = getContext().getResponse();
     var updatedItems = 0;
 
     var category = JSON.parse(categoryPayload);
@@ -41,23 +44,19 @@
                 if (options.continuation) {
                     doUpdate(options.continuation);
                 } else {
-                    response.setBody(constructResponse({ updatedItems, continuation: null }));
+                    setResponse({ updatedItems, continuation: null });
                 }
             }
         )
 
         if (!isAccepted) {
-            response.setBody(constructResponse({
+            setResponse({
                 updatedItems: null,
                 continuation: {
                     lastCount: updatedItems,
                     token: continuationToken
                 }
-            }))
+            })
         }
     }
-}
-
-function constructResponse(data, status = 200, message = "OK") {
-    return { status, message, data }
 }
