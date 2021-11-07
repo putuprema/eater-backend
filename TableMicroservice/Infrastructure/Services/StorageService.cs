@@ -15,8 +15,6 @@ namespace Infrastructure.Services
         public async Task<string> UploadQrStickerAsync(Stream stream, string fileName = default, CancellationToken cancellationToken = default)
         {
             var containerClient = _blobServiceClient.GetBlobContainerClient("qr-stickers");
-            await containerClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
-
             var blob = containerClient.GetBlobClient(fileName);
 
             await blob.UploadAsync(stream,

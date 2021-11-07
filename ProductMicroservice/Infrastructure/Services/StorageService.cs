@@ -34,8 +34,6 @@ namespace Infrastructure.Services
             ValidateFileSize(file);
 
             var containerClient = _blobSericeClient.GetBlobContainerClient("products");
-            await containerClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
-
             var blob = containerClient.GetBlobClient(fileName ?? file.FileName);
 
             using (var stream = file.OpenReadStream())
