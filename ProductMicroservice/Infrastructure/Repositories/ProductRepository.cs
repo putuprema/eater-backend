@@ -5,12 +5,12 @@ namespace Infrastructure.Repositories
 {
     public class ProductRepository : IProductRepository
     {
-        private readonly Container _container;
+        private readonly CosmosService _cosmosService;
         private readonly IOptions<JsonSerializerSettings> _jsonSerializerSettings;
 
         public ProductRepository(CosmosService cosmosService, IOptions<JsonSerializerSettings> jsonSerializerSettings)
         {
-            _container = cosmosService.GetContainer("Items");
+            _cosmosService = cosmosService;
             _jsonSerializerSettings = jsonSerializerSettings;
         }
 
@@ -40,7 +40,7 @@ namespace Infrastructure.Repositories
 
         public async Task<PagedResultSet<Product>> FindAllAsync(GetProductsQuery query, CancellationToken cancellationToken = default)
         {
-            IQueryable<Product> queryBuilder = _container.GetItemLinqQueryable<Product>(continuationToken: query.ContinuationToken, requestOptions: new QueryRequestOptions
+            IQueryable<Product> queryBuilder = _cosmosService.Items.GetItemLinqQueryable<Product>(continuationToken: query.ContinuationToken, requestOptions: new QueryRequestOptions
             {
                 PartitionKey = new PartitionKey(nameof(Product)),
                 MaxItemCount = query.PageSize
@@ -64,7 +64,7 @@ namespace Infrastructure.Repositories
         {
             try
             {
-                return await _container.ReadItemAsync<Product>(id, new PartitionKey(nameof(Product)), cancellationToken: cancellationToken);
+                return await _cosmosService.Items.ReadItemAsync<Product>(id, new PartitionKey(nameof(Product)), cancellationToken: cancellationToken);
             }
             catch (CosmosException ex)
             {
@@ -77,7 +77,7 @@ namespace Infrastructure.Repositories
 
         public async Task<Product> UpsertAsync(Product product, CancellationToken cancellationToken = default)
         {
-            return await _container.UpsertItemAsync(product, new PartitionKey(nameof(Product)), cancellationToken: cancellationToken);
+            return await _cosmosService.Items.UpsertItemAsync(product, new PartitionKey(nameof(Product)), cancellationToken: cancellationToken);
         }
 
         public async Task<BulkUpdateCategoryResult> BulkUpdateCategoryDataAsync(ProductCategory category, BulkUpdateCategoryContinuation continuation, CancellationToken cancellationToken = default)
@@ -85,7 +85,7 @@ namespace Infrastructure.Repositories
             var categoryPayload = JsonConvert.SerializeObject(category, _jsonSerializerSettings.Value);
             var continuationPayload = JsonConvert.SerializeObject(continuation, _jsonSerializerSettings.Value);
 
-            var result = await _container.Scripts.ExecuteStoredProcedureAsync<CosmosSpResult<BulkUpdateCategoryResult>>(
+            var result = await _cosmosService.Items.Scripts.ExecuteStoredProcedureAsync<CosmosSpResult<BulkUpdateCategoryResult>>(
                 StoredProcedure.UpdateCategoryDataProduct,
                 new PartitionKey(nameof(Product)),
                 parameters: new[] { categoryPayload, continuationPayload },
@@ -99,7 +99,7 @@ namespace Infrastructure.Repositories
         {
             try
             {
-                return await _container.DeleteItemAsync<Product>(id, new PartitionKey(nameof(Product)), cancellationToken: cancellationToken);
+                return await _cosmosService.Items.DeleteItemAsync<Product>(id, new PartitionKey(nameof(Product)), cancellationToken: cancellationToken);
             }
             catch (CosmosException ex)
             {
@@ -112,7 +112,7 @@ namespace Infrastructure.Repositories
 
         public async Task<IDictionary<string, IEnumerable<Product>>> GetFeaturedProductsPerCategoryAsync(IEnumerable<string> categoryIds, CancellationToken cancellationToken = default)
         {
-            var result = await _container.Scripts.ExecuteStoredProcedureAsync<CosmosSpResult<IDictionary<string, IEnumerable<Product>>>>(
+            var result = await _cosmosService.Items.Scripts.ExecuteStoredProcedureAsync<CosmosSpResult<IDictionary<string, IEnumerable<Product>>>>(
                 StoredProcedure.GetFeaturedProductsPerCategory,
                 new PartitionKey(nameof(Product)),
                 parameters: new[] { JsonConvert.SerializeObject(categoryIds) },

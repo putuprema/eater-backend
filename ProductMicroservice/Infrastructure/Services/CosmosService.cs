@@ -20,6 +20,11 @@ namespace Infrastructure.Services
             });
         }
 
+        public Container Items
+        {
+            get => GetContainer(nameof(Items));
+        }
+
         public Container GetContainer(string containerId) => Client.GetContainer(Config.DbName, containerId);
     }
 }

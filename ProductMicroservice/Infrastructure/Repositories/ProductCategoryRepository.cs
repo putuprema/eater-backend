@@ -2,12 +2,12 @@
 {
     public class ProductCategoryRepository : IProductCategoryRepository
     {
-        private readonly Container _container;
+        private readonly CosmosService _cosmosService;
         private readonly IOptions<JsonSerializerSettings> _jsonSerializerSettings;
 
         public ProductCategoryRepository(CosmosService cosmosService, IOptions<JsonSerializerSettings> jsonSerializerSettings)
         {
-            _container = cosmosService.GetContainer("Items");
+            _cosmosService = cosmosService;
             _jsonSerializerSettings = jsonSerializerSettings;
         }
 
@@ -15,7 +15,7 @@
         {
             try
             {
-                await _container.DeleteItemAsync<ProductCategory>(id, new PartitionKey(nameof(ProductCategory)), cancellationToken: cancellationToken);
+                await _cosmosService.Items.DeleteItemAsync<ProductCategory>(id, new PartitionKey(nameof(ProductCategory)), cancellationToken: cancellationToken);
             }
             catch (CosmosException ex)
             {
@@ -28,7 +28,7 @@
 
         public async Task<IEnumerable<ProductCategory>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            using var feedIterator = _container.GetItemLinqQueryable<ProductCategory>(requestOptions: new QueryRequestOptions
+            using var feedIterator = _cosmosService.Items.GetItemLinqQueryable<ProductCategory>(requestOptions: new QueryRequestOptions
             {
                 PartitionKey = new PartitionKey(nameof(ProductCategory))
             })
@@ -51,7 +51,7 @@
         {
             try
             {
-                return await _container.ReadItemAsync<ProductCategory>(id, new PartitionKey(nameof(ProductCategory)), cancellationToken: cancellationToken);
+                return await _cosmosService.Items.ReadItemAsync<ProductCategory>(id, new PartitionKey(nameof(ProductCategory)), cancellationToken: cancellationToken);
             }
             catch (CosmosException ex)
             {
@@ -66,7 +66,7 @@
         {
             var payload = JsonConvert.SerializeObject(productCategory, _jsonSerializerSettings.Value);
 
-            var result = await _container.Scripts.ExecuteStoredProcedureAsync<CosmosSpResult<ProductCategory>>(
+            var result = await _cosmosService.Items.Scripts.ExecuteStoredProcedureAsync<CosmosSpResult<ProductCategory>>(
                 StoredProcedure.UpsertProductCategory,
                 new PartitionKey(nameof(ProductCategory)),
                 parameters: new[] { payload },
