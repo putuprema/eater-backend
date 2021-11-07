@@ -2,18 +2,18 @@
 {
     public class RefreshTokenRepository : IRefreshTokenRepository
     {
-        private readonly Container _container;
+        private readonly CosmosService _cosmosService;
 
         public RefreshTokenRepository(CosmosService cosmosService)
         {
-            _container = cosmosService.GetContainer("RefreshToken");
+            _cosmosService = cosmosService;
         }
 
         public async Task<RefreshToken> GetTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
         {
             try
             {
-                return await _container.ReadItemAsync<RefreshToken>(refreshToken, new PartitionKey(refreshToken), cancellationToken: cancellationToken);
+                return await _cosmosService.RefreshToken.ReadItemAsync<RefreshToken>(refreshToken, new PartitionKey(refreshToken), cancellationToken: cancellationToken);
             }
             catch (CosmosException ex)
             {
@@ -28,7 +28,7 @@
         {
             try
             {
-                await _container.DeleteItemAsync<dynamic>(refreshToken, new PartitionKey(refreshToken), cancellationToken: cancellationToken);
+                await _cosmosService.RefreshToken.DeleteItemAsync<dynamic>(refreshToken, new PartitionKey(refreshToken), cancellationToken: cancellationToken);
                 return true;
             }
             catch (CosmosException ex)
@@ -42,7 +42,7 @@
 
         public async Task UpsertTokenAsync(RefreshToken refreshToken, CancellationToken cancellationToken = default)
         {
-            await _container.UpsertItemAsync(refreshToken, new PartitionKey(refreshToken.Token), cancellationToken: cancellationToken);
+            await _cosmosService.RefreshToken.UpsertItemAsync(refreshToken, new PartitionKey(refreshToken.Token), cancellationToken: cancellationToken);
         }
     }
 }

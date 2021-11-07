@@ -2,16 +2,16 @@
 {
     public class AccountRepository : IAccountRepository
     {
-        private readonly Container _container;
+        private readonly CosmosService _cosmosService;
 
         public AccountRepository(CosmosService cosmosService)
         {
-            _container = cosmosService.GetContainer("Account");
+            _cosmosService = cosmosService;
         }
 
         public async Task<Account> GetByEmailAndRoleAsync(string email, Role role = Role.CUSTOMER, CancellationToken cancellationToken = default)
         {
-            using var feedIterator = _container.GetItemLinqQueryable<Account>(requestOptions: new QueryRequestOptions { PartitionKey = new PartitionKey(role.ToString()) })
+            using var feedIterator = _cosmosService.Account.GetItemLinqQueryable<Account>(requestOptions: new QueryRequestOptions { PartitionKey = new PartitionKey(role.ToString()) })
                 .Where(a => a.Email == email)
                 .ToFeedIterator();
 
@@ -28,7 +28,7 @@
         {
             try
             {
-                return await _container.ReadItemAsync<Account>(id, new PartitionKey(role.ToString()), cancellationToken: cancellationToken);
+                return await _cosmosService.Account.ReadItemAsync<Account>(id, new PartitionKey(role.ToString()), cancellationToken: cancellationToken);
             }
             catch (CosmosException ex)
             {
@@ -41,7 +41,7 @@
 
         public async Task<Account> UpsertAsync(Account account, CancellationToken cancellationToken = default)
         {
-            return await _container.UpsertItemAsync(account, new PartitionKey(account.Role.ToString()), cancellationToken: cancellationToken);
+            return await _cosmosService.Account.UpsertItemAsync(account, new PartitionKey(account.Role.ToString()), cancellationToken: cancellationToken);
         }
     }
 }

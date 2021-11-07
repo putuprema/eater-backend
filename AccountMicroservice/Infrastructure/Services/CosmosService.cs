@@ -21,6 +21,16 @@ namespace Infrastructure.Services
             });
         }
 
+        public Container Account
+        {
+            get => GetContainer(nameof(Account));
+        }
+
+        public Container RefreshToken
+        {
+            get => GetContainer(nameof(RefreshToken));
+        }
+
         public Container GetContainer(string containerId) => Client.GetContainer(databaseId, containerId);
     }
 }
