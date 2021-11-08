@@ -23,6 +23,7 @@
                 if (category == null)
                     throw new NotFoundException("Product category not found");
 
+                product.PreviousCategoryId = product.Category.Id;
                 product.Category = category.Adapt<SimpleProductCategory>();
             }
 

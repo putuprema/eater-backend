@@ -38,8 +38,28 @@ namespace Infrastructure.Repositories
             };
         }
 
+        public async Task<BulkUpdateCategoryResult> BulkUpdateCategoryDataAsync(ProductCategory category, BulkUpdateCategoryContinuation continuation, CancellationToken cancellationToken = default)
+        {
+            var categoryPayload = JsonConvert.SerializeObject(category, _jsonSerializerSettings.Value);
+            var continuationPayload = JsonConvert.SerializeObject(continuation, _jsonSerializerSettings.Value);
+
+            var result = await _cosmosService.Items.Scripts.ExecuteStoredProcedureAsync<CosmosSpResult<BulkUpdateCategoryResult>>(
+                StoredProcedure.UpdateCategoryDataProduct,
+                new PartitionKey(nameof(Product)),
+                parameters: new[] { categoryPayload, continuationPayload },
+                cancellationToken: cancellationToken);
+
+            result.Resource.EnsureSuccessStatusCode();
+            return result.Resource.Data;
+        }
+
         public async Task<PagedResultSet<Product>> FindAllAsync(GetProductsQuery query, CancellationToken cancellationToken = default)
         {
+            if (!string.IsNullOrEmpty(query.CategoryId))
+            {
+                return await GetByCategoryIdAsync(query, cancellationToken);
+            }
+
             IQueryable<Product> queryBuilder = _cosmosService.Items.GetItemLinqQueryable<Product>(continuationToken: query.ContinuationToken, requestOptions: new QueryRequestOptions
             {
                 PartitionKey = new PartitionKey(nameof(Product)),
@@ -51,12 +71,24 @@ namespace Infrastructure.Repositories
                 queryBuilder = queryBuilder.Where(p => p.Name.Contains(query.Name));
             }
 
-            if (!string.IsNullOrEmpty(query.CategoryId))
+            using var feedIterator = queryBuilder.Where(p => !p.Deleted).OrderBy(p => p.Name).ToFeedIterator();
+            return await DoPagedQueryAsync(feedIterator, cancellationToken);
+        }
+
+        public async Task<PagedResultSet<Product>> GetByCategoryIdAsync(GetProductsQuery query, CancellationToken cancellationToken = default)
+        {
+            IQueryable<Product> queryBuilder = _cosmosService.ProductByCategory.GetItemLinqQueryable<Product>(continuationToken: query.ContinuationToken, requestOptions: new QueryRequestOptions
             {
-                queryBuilder = queryBuilder.Where(p => p.Category.Id == query.CategoryId);
+                PartitionKey = new PartitionKey(query.CategoryId),
+                MaxItemCount = query.PageSize
+            });
+
+            if (!string.IsNullOrEmpty(query.Name))
+            {
+                queryBuilder = queryBuilder.Where(p => p.Name.Contains(query.Name));
             }
 
-            using var feedIterator = queryBuilder.OrderBy(p => p.Name).ToFeedIterator();
+            using var feedIterator = queryBuilder.Where(p => !p.Deleted).OrderBy(p => p.Name).ToFeedIterator();
             return await DoPagedQueryAsync(feedIterator, cancellationToken);
         }
 
@@ -64,7 +96,11 @@ namespace Infrastructure.Repositories
         {
             try
             {
-                return await _cosmosService.Items.ReadItemAsync<Product>(id, new PartitionKey(nameof(Product)), cancellationToken: cancellationToken);
+                var product = await _cosmosService.Items.ReadItemAsync<Product>(id, new PartitionKey(nameof(Product)), cancellationToken: cancellationToken);
+                if (product.Resource.Deleted)
+                    return null;
+
+                return product;
             }
             catch (CosmosException ex)
             {
@@ -80,19 +116,9 @@ namespace Infrastructure.Repositories
             return await _cosmosService.Items.UpsertItemAsync(product, new PartitionKey(nameof(Product)), cancellationToken: cancellationToken);
         }
 
-        public async Task<BulkUpdateCategoryResult> BulkUpdateCategoryDataAsync(ProductCategory category, BulkUpdateCategoryContinuation continuation, CancellationToken cancellationToken = default)
+        public async Task<Product> UpsertProductByCategoryAsync(Product product, CancellationToken cancellationToken = default)
         {
-            var categoryPayload = JsonConvert.SerializeObject(category, _jsonSerializerSettings.Value);
-            var continuationPayload = JsonConvert.SerializeObject(continuation, _jsonSerializerSettings.Value);
-
-            var result = await _cosmosService.Items.Scripts.ExecuteStoredProcedureAsync<CosmosSpResult<BulkUpdateCategoryResult>>(
-                StoredProcedure.UpdateCategoryDataProduct,
-                new PartitionKey(nameof(Product)),
-                parameters: new[] { categoryPayload, continuationPayload },
-                cancellationToken: cancellationToken);
-
-            result.Resource.EnsureSuccessStatusCode();
-            return result.Resource.Data;
+            return await _cosmosService.ProductByCategory.UpsertItemAsync(product, new PartitionKey(product.Category.Id), cancellationToken: cancellationToken);
         }
 
         public async Task<Product> DeleteAsync(string id, CancellationToken cancellationToken = default)
@@ -110,16 +136,19 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<IDictionary<string, IEnumerable<Product>>> GetFeaturedProductsPerCategoryAsync(IEnumerable<string> categoryIds, CancellationToken cancellationToken = default)
+        public async Task<Product> DeleteProductByCategoryAsync(string id, string categoryId, CancellationToken cancellationToken = default)
         {
-            var result = await _cosmosService.Items.Scripts.ExecuteStoredProcedureAsync<CosmosSpResult<IDictionary<string, IEnumerable<Product>>>>(
-                StoredProcedure.GetFeaturedProductsPerCategory,
-                new PartitionKey(nameof(Product)),
-                parameters: new[] { JsonConvert.SerializeObject(categoryIds) },
-                cancellationToken: cancellationToken);
+            try
+            {
+                return await _cosmosService.ProductByCategory.DeleteItemAsync<Product>(id, new PartitionKey(categoryId), cancellationToken: cancellationToken);
+            }
+            catch (CosmosException ex)
+            {
+                if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    throw new NotFoundException("Product not found");
 
-            result.Resource.EnsureSuccessStatusCode();
-            return result.Resource.Data;
+                throw ex;
+            }
         }
     }
 }

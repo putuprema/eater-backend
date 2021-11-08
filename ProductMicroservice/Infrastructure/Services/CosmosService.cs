@@ -25,6 +25,11 @@ namespace Infrastructure.Services
             get => GetContainer(nameof(Items));
         }
 
+        public Container ProductByCategory
+        {
+            get => GetContainer(nameof(ProductByCategory));
+        }
+
         public Container GetContainer(string containerId) => Client.GetContainer(Config.DbName, containerId);
     }
 }

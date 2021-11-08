@@ -1,11 +1,9 @@
-using API.Functions.Orchestrations;
 using Application.Products.Commands.AddProduct;
 using Application.Products.Commands.DeleteProduct;
 using Application.Products.Commands.EditProduct;
 using Application.Products.Queries.GetFeaturedProducts;
 using Application.Products.Queries.GetProduct;
 using Application.Products.Queries.GetProducts;
-using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 
 namespace API.Functions
 {
@@ -74,15 +72,13 @@ namespace API.Functions
 
         [FunctionName(nameof(DeleteProduct))]
         public async Task<IActionResult> DeleteProduct(
-           [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "v1/products/{id}")] HttpRequest req, string id,
-           [DurableClient] IDurableOrchestrationClient starter, CancellationToken cancellationToken)
+           [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "v1/products/{id}")] HttpRequest req, string id, CancellationToken cancellationToken)
         {
             var cancellationTokens = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, req.HttpContext.RequestAborted).Token;
 
             try
             {
-                var deletedProduct = await _mediator.Send(new DeleteProductCommand { Id = id }, cancellationTokens);
-                await starter.StartNewAsync(nameof(ProductCleanupOrchestration), deletedProduct);
+                await _mediator.Send(new DeleteProductCommand { Id = id }, cancellationTokens);
                 return new OkResult();
             }
             catch (AppException ex)

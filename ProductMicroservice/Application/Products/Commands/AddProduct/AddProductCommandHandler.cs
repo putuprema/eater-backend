@@ -26,7 +26,8 @@
                 Name = request.Name,
                 Description = request.Description,
                 Price = request.Price,
-                Category = category.Adapt<SimpleProductCategory>()
+                Category = category.Adapt<SimpleProductCategory>(),
+                PreviousCategoryId = category.Id
             };
 
             var fileName = product.Id + Path.GetExtension(request.Image.FileName);

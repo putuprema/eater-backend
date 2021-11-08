@@ -22,8 +22,8 @@ namespace Infrastructure
 
             services.AddSingleton<CosmosService>();
             services.AddSingleton<IStorageService, StorageService>();
-            services.AddScoped<IProductCategoryRepository, ProductCategoryRepository>();
-            services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddSingleton<IProductCategoryRepository, ProductCategoryRepository>();
+            services.AddSingleton<IProductRepository, ProductRepository>();
 
             return services;
         }

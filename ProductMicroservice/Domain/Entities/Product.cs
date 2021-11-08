@@ -9,6 +9,15 @@
         public long Price { get; set; }
         public string ImageUrl { get; set; }
         public SimpleProductCategory Category { get; set; }
+        public string PreviousCategoryId { get; set; }
         public bool Enabled { get; set; } = true;
+        public bool Deleted { get; set; }
+        public int Ttl { get; set; } = -1;
+
+        public void MarkForDeletion()
+        {
+            Deleted = true;
+            Ttl = 10;
+        }
     }
 }

@@ -21,10 +21,21 @@ namespace API.Functions
             {
                 foreach (var doc in input)
                 {
-                    if (doc.GetPropertyValue<string>("objectType") == nameof(ProductCategory))
+                    var objectType = doc.GetPropertyValue<string>("objectType");
+
+                    if (objectType == nameof(ProductCategory))
                     {
-                        var productCategory = JsonConvert.DeserializeObject(doc.ToString());
+                        var productCategory = JsonConvert.DeserializeObject<ProductCategory>(doc.ToString());
                         await starter.StartNewAsync(nameof(CategoryDataUpdateOrchestration), productCategory);
+                    }
+                    else if (objectType == nameof(Product))
+                    {
+                        var product = JsonConvert.DeserializeObject<Product>(doc.ToString());
+                        if (product.Deleted)
+                        {
+                            await starter.StartNewAsync(nameof(ProductCleanupOrchestration), product);
+                        }
+                        await starter.StartNewAsync(nameof(ProductUpsertOrchestration), product);
                     }
                 }
             }

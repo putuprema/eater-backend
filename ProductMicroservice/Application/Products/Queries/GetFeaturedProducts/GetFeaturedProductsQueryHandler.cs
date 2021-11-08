@@ -1,5 +1,6 @@
 ﻿using Application.ProductCategories.Queries.GetCategory;
 using Application.Products.Queries.GetProducts;
+using System.Collections.Concurrent;
 
 namespace Application.Products.Queries.GetFeaturedProducts
 {
@@ -17,12 +18,18 @@ namespace Application.Products.Queries.GetFeaturedProducts
         public async Task<IEnumerable<FeaturedProductsDto>> Handle(GetFeaturedProductsQuery request, CancellationToken cancellationToken)
         {
             var categories = await _productCategoryRepository.GetAllAsync(cancellationToken);
-            var productsMap = await _productRepository.GetFeaturedProductsPerCategoryAsync(categories.Select(c => c.Id), cancellationToken);
+            var productsMap = new ConcurrentDictionary<string, IEnumerable<ProductDto>>();
+
+            await Parallel.ForEachAsync(categories, async (category, cancellationToken) =>
+            {
+                var productQueryResult = await _productRepository.GetByCategoryIdAsync(new GetProductsQuery { CategoryId = category.Id, PageSize = 5 }, cancellationToken);
+                productsMap.TryAdd(category.Id, productQueryResult.Items.Adapt<List<ProductDto>>());
+            });
 
             return categories.Select(c => new FeaturedProductsDto
             {
                 Category = c.Adapt<ProductCategoryDto>(),
-                Products = productsMap[c.Id] != null ? productsMap[c.Id].Adapt<List<ProductDto>>() : new List<ProductDto>()
+                Products = productsMap[c.Id] ?? new List<ProductDto>()
             });
         }
     }

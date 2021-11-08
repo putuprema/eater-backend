@@ -24,7 +24,7 @@
     function doUpdate(continuationToken) {
         var isAccepted = collection.queryDocuments(
             collection.getSelfLink(),
-            `SELECT * FROM c WHERE c.category.id = '${category.id}'`,
+            `SELECT * FROM c WHERE c.deleted = false AND c.category.id = '${category.id}'`,
             { continuation: continuationToken },
             function (err, feed, options) {
                 if (err) throw err;
