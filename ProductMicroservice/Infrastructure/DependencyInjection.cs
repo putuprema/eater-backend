@@ -24,6 +24,7 @@ namespace Infrastructure
             services.AddSingleton<IStorageService, StorageService>();
             services.AddSingleton<IProductCategoryRepository, ProductCategoryRepository>();
             services.AddSingleton<IProductRepository, ProductRepository>();
+            services.AddSingleton<IFeaturedProductsService, FeaturedProductsService>();
 
             return services;
         }

@@ -10,11 +10,13 @@ namespace API.Functions.Orchestrations
     {
         private readonly DurableFunctionConfig _durableFunctionConfig;
         private readonly IProductRepository _productRepository;
+        private readonly IFeaturedProductsService _featuredProductsService;
 
-        public ProductUpsertOrchestration(IOptions<DurableFunctionConfig> durableFunctionConfig, IProductRepository productRepository)
+        public ProductUpsertOrchestration(IOptions<DurableFunctionConfig> durableFunctionConfig, IProductRepository productRepository, IFeaturedProductsService featuredProductsService)
         {
             _durableFunctionConfig = durableFunctionConfig.Value;
             _productRepository = productRepository;
+            _featuredProductsService = featuredProductsService;
         }
 
         [FunctionName(nameof(ProductUpsertOrchestration))]
@@ -34,6 +36,7 @@ namespace API.Functions.Orchestrations
             else
             {
                 await context.CallActivityWithRetryAsync(nameof(ReplicateProductUpsert), retryOptions, product);
+                await context.CallActivityWithRetryAsync(nameof(PopulateFeaturedProductsCache), retryOptions, null);
             }
         }
 
@@ -60,6 +63,13 @@ namespace API.Functions.Orchestrations
         public async Task ReplicateProductUpsert([ActivityTrigger] Product product, CancellationToken cancellationToken)
         {
             await _productRepository.UpsertProductByCategoryAsync(product, cancellationToken);
+        }
+
+        [FunctionName(nameof(PopulateFeaturedProductsCache))]
+        public async Task PopulateFeaturedProductsCache([ActivityTrigger] IDurableActivityContext context, ILogger log, CancellationToken cancellationToken)
+        {
+            await _featuredProductsService.PopulateFeaturedProductsCache(cancellationToken);
+            log.LogInformation($"[{nameof(PopulateFeaturedProductsCache)}]: Populated featured products cache");
         }
     }
 }

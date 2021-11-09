@@ -4,6 +4,7 @@
     {
         private readonly CosmosService _cosmosService;
         private readonly IOptions<JsonSerializerSettings> _jsonSerializerSettings;
+        private IEnumerable<ProductCategory> _categories;
 
         public ProductCategoryRepository(CosmosService cosmosService, IOptions<JsonSerializerSettings> jsonSerializerSettings)
         {
@@ -27,6 +28,15 @@
         }
 
         public async Task<IEnumerable<ProductCategory>> GetAllAsync(CancellationToken cancellationToken = default)
+        {
+            if (_categories == null)
+            {
+                _categories = await GetAllFromCosmosAsync(cancellationToken);
+            }
+            return _categories;
+        }
+
+        private async Task<IEnumerable<ProductCategory>> GetAllFromCosmosAsync(CancellationToken cancellationToken = default)
         {
             using var feedIterator = _cosmosService.Items.GetItemLinqQueryable<ProductCategory>(requestOptions: new QueryRequestOptions
             {
@@ -74,6 +84,12 @@
 
             result.Resource.EnsureSuccessStatusCode();
             return result.Resource.Data;
+        }
+
+        public async Task<int> PopulateCategoryCacheAsync(CancellationToken cancellationToken = default)
+        {
+            _categories = await GetAllFromCosmosAsync(cancellationToken);
+            return _categories.Count();
         }
     }
 }

@@ -26,7 +26,7 @@ namespace API.Functions
                     if (objectType == nameof(ProductCategory))
                     {
                         var productCategory = JsonConvert.DeserializeObject<ProductCategory>(doc.ToString());
-                        await starter.StartNewAsync(nameof(CategoryDataUpdateOrchestration), productCategory);
+                        await starter.StartNewAsync(nameof(ProductCategoryUpdateOrchestration), productCategory);
                     }
                     else if (objectType == nameof(Product))
                     {
