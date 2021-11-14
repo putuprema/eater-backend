@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <AzureFunctionsVersion>v4</AzureFunctionsVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UserSecretsId>351566a4-005a-4867-a7c3-37f3d855b7a9</UserSecretsId>
+    </PropertyGroup>
+    <ItemGroup>
+		<PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
+		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.CosmosDB" Version="3.0.10" />
+		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.6.0" />
+		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.EventGrid" Version="3.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.0" />
+		<PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.1" />
+    </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+	</ItemGroup>
+    <ItemGroup>
+        <None Update="host.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="local.settings.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+        </None>
+    </ItemGroup>
+	<ItemGroup>
+		<Using Include="API.Extensions" />
+		<Using Include="API.Constants" />
+		<Using Include="API.Models" />
+		<Using Include="Domain.Exceptions" />
+		<Using Include="FluentValidation" />
+		<Using Include="MediatR" />
+		<Using Include="Microsoft.AspNetCore.Http" />
+		<Using Include="Microsoft.AspNetCore.Mvc" />
+		<Using Include="Microsoft.Azure.WebJobs" />
+		<Using Include="Microsoft.Azure.WebJobs.Extensions.Http" />
+		<Using Include="Microsoft.Extensions.Logging" />
+	</ItemGroup>
+</Project>

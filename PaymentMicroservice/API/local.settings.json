@@ -1,0 +1,15 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": null,
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "CosmosConfig:DbName": "PaymentMicroservice",
+    "CosmosConfig:ConnString": null,
+    "DurableFunctionConfig:FirstRetryIntervalSecond": 3,
+    "DurableFunctionConfig:MaxNumberOfAttempts": 5,
+    "Stripe:ApiKey": null,
+    "Stripe:WebhookSecret": null,
+    "EventGridTopicEndpointUri": null,
+    "EventGridTopicKey": null
+  }
+}
