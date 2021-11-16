@@ -23,6 +23,6 @@ TBD
 - [x] Account microservice
 - [x] Product microservice
 - [x] Table microservice
+- [x] Payment microservice
 - [ ] Order microservice
-- [ ] Payment microservice
 - [ ] CI/CD
