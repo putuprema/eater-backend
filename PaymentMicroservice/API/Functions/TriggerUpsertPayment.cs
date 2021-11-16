@@ -28,10 +28,11 @@ namespace API.Functions
                     log.LogInformation($"Payment Upsert: {doc}");
                     var payment = JsonConvert.DeserializeObject<Payment>(doc.ToString());
 
+                    var eventPayload = JsonConvert.SerializeObject(payment.Adapt<PaymentDto>());
                     await events.AddAsync(new EventGridEvent(Guid.NewGuid().ToString(),
                         PaymentEvents.EventTypePaymentStatusChanged,
                         PaymentEvents.PaymentEventDataVersion,
-                        new BinaryData(payment.Adapt<PaymentDto>())), cancellationToken);
+                        new BinaryData(eventPayload)), cancellationToken);
                 }
             }
         }
