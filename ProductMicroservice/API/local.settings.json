@@ -1,14 +1,17 @@
 {
-    "IsEncrypted": false,
-    "Values": {
-      "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-      "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-      "CosmosConfig:DbName": "ProductMicroservice",
-      "CosmosConfig:ConnString": null,
-      "CosmosConfig:ItemsContainer": "Items",
-      "BlobStorage:ConnString": null,
-      "BlobStorage:MaxFileSizeMb": 4,
-      "DurableFunctionConfig:FirstRetryIntervalSecond": 3,
-      "DurableFunctionConfig:MaxNumberOfAttempts": 5
-    }
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "CosmosConfig:DbName": "ProductMicroservice",
+    "CosmosConfig:ConnString": null,
+    "CosmosConfig:ItemsContainer": "Items",
+    "BlobStorage:ConnString": null,
+    "BlobStorage:MaxFileSizeMb": 4,
+    "DurableFunctionConfig:FirstRetryIntervalSecond": 3,
+    "DurableFunctionConfig:MaxNumberOfAttempts": 5,
+    "EventGridTopicEndpointUri": null,
+    "EventGridTopicKey": null,
+    "ServiceBusConnString": null
+  }
 }

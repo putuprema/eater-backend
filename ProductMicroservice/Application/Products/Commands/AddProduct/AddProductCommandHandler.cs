@@ -33,7 +33,7 @@
             var fileName = product.Id + Path.GetExtension(request.Image.FileName);
             product.ImageUrl = await _storageService.UploadProductPhotoAsync(request.Image, fileName, cancellationToken);
 
-            await _productRepository.UpsertAsync(product, cancellationToken);
+            await _productRepository.UpsertAsync(product, cancellationToken: cancellationToken);
             return Unit.Value;
         }
     }

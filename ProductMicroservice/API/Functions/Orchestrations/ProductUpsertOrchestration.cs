@@ -56,7 +56,7 @@ namespace API.Functions.Orchestrations
         public async Task UpdatePreviousCategoryId([ActivityTrigger] Product product, CancellationToken cancellationToken)
         {
             product.PreviousCategoryId = product.Category.Id;
-            await _productRepository.UpsertAsync(product, cancellationToken);
+            await _productRepository.UpsertAsync(product, cancellationToken: cancellationToken);
         }
 
         [FunctionName(nameof(ReplicateProductUpsert))]

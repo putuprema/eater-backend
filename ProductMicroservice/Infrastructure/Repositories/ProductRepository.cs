@@ -111,9 +111,12 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<Product> UpsertAsync(Product product, CancellationToken cancellationToken = default)
+        public async Task<Product> UpsertAsync(Product product, bool denyOnVersionMismatch = false, CancellationToken cancellationToken = default)
         {
-            return await _cosmosService.Items.UpsertItemAsync(product, new PartitionKey(nameof(Product)), cancellationToken: cancellationToken);
+            return await _cosmosService.Items.UpsertItemAsync(product, 
+                new PartitionKey(nameof(Product)),
+                new ItemRequestOptions { IfMatchEtag = denyOnVersionMismatch ? product.ETag : null },
+                cancellationToken);
         }
 
         public async Task<Product> UpsertProductByCategoryAsync(Product product, CancellationToken cancellationToken = default)
@@ -149,6 +152,23 @@ namespace Infrastructure.Repositories
 
                 throw ex;
             }
+        }
+
+        public async Task<IEnumerable<Product>> GetAllByIdsAsync(List<string> ids, CancellationToken cancellationToken = default)
+        {
+            var feedIterator = _cosmosService.Items.GetItemLinqQueryable<Product>(requestOptions: new QueryRequestOptions { PartitionKey = new PartitionKey(nameof(Product)) })
+                .Where(p => ids.Contains(p.Id))
+                .ToFeedIterator();
+
+            var products = new List<Product>();
+
+            while (feedIterator.HasMoreResults)
+            {
+                var response = await feedIterator.ReadNextAsync(cancellationToken);
+                products.AddRange(response);
+            }
+
+            return products;
         }
     }
 }

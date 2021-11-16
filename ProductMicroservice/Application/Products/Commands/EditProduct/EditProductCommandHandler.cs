@@ -32,7 +32,7 @@
             product.Price = request.Price;
             product.Enabled = request.Enabled;
 
-            await _productRepository.UpsertAsync(product, cancellationToken);
+            await _productRepository.UpsertAsync(product, cancellationToken: cancellationToken);
             return Unit.Value;
         }
     }

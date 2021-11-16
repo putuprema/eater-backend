@@ -9,9 +9,10 @@ namespace Application.Common.Interfaces
         Task<PagedResultSet<Product>> FindAllAsync(GetProductsQuery query, CancellationToken cancellationToken = default);
         Task<PagedResultSet<Product>> GetByCategoryIdAsync(GetProductsQuery query, CancellationToken cancellationToken = default);
         Task<Product> GetByIdAsync(string id, CancellationToken cancellationToken = default);
-        Task<Product> UpsertAsync(Product product, CancellationToken cancellationToken = default);
+        Task<Product> UpsertAsync(Product product, bool denyOnVersionMismatch = false, CancellationToken cancellationToken = default);
         Task<Product> UpsertProductByCategoryAsync(Product product, CancellationToken cancellationToken = default);
         Task<Product> DeleteAsync(string id, CancellationToken cancellationToken = default);
         Task<Product> DeleteProductByCategoryAsync(string id, string categoryId, CancellationToken cancellationToken = default);
+        Task<IEnumerable<Product>> GetAllByIdsAsync(List<string> ids, CancellationToken cancellationToken = default);
     }
 }

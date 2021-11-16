@@ -17,7 +17,7 @@
                 throw new NotFoundException("Product not found");
 
             product.MarkForDeletion();
-            await _productRepository.UpsertAsync(product, cancellationToken);
+            await _productRepository.UpsertAsync(product, cancellationToken: cancellationToken);
 
             return Unit.Value;
         }
