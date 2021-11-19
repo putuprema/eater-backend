@@ -1,3 +1,4 @@
+using API.Constants;
 using API.Functions.Orchestrations;
 using Domain.Entities;
 using Microsoft.Azure.Documents;
@@ -12,7 +13,7 @@ namespace API.Functions
         public async Task Run([CosmosDBTrigger(
             databaseName: "ProductMicroservice",
             collectionName: "Items",
-            ConnectionStringSetting = "CosmosConfig:ConnString",
+            ConnectionStringSetting = AppSettingsKeys.CosmosDbConnString,
             LeaseCollectionName = "leases",
             CreateLeaseCollectionIfNotExists = true)] IReadOnlyList<Document> input,
             [DurableClient] IDurableOrchestrationClient starter)
