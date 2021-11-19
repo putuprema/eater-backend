@@ -27,6 +27,7 @@ namespace Domain.Entities
 
     public class Order
     {
+        public bool IsNew { get; set; } = true;
         public string Id { get; set; } = Guid.NewGuid().ToString();
         public Customer Customer { get; set; }
         public Table Table { get; set; }

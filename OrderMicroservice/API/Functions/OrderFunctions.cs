@@ -50,10 +50,7 @@ namespace API.Functions
         }
 
         [FunctionName(nameof(CreateOrder))]
-        public async Task<IActionResult> CreateOrder(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "v1/order")] HttpRequest req,
-            [DurableClient] IDurableOrchestrationClient starter,
-            CancellationToken cancellationToken)
+        public async Task<IActionResult> CreateOrder([HttpTrigger(AuthorizationLevel.Function, "post", Route = "v1/order")] HttpRequest req, CancellationToken cancellationToken)
         {
             var cancellationTokens = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, req.HttpContext.RequestAborted).Token;
             try
@@ -69,9 +66,7 @@ namespace API.Functions
                     Email = req.GetCurrentUserEmail()
                 };
 
-                var result = await _mediator.Send(request, cancellationToken);
-                await starter.StartNewAsync(Orchestrations.OrderOrchestration, result.Id, result);
-
+                var result = await _mediator.Send(request, cancellationTokens);
                 return new OkObjectResult(result);
             }
             catch (ValidationException ex)

@@ -37,85 +37,83 @@ namespace API.Functions.DurableFunctions.OrderCreated
                 maxNumberOfAttempts: _durableFunctionConfig.MaxNumberOfAttempts);
 
             var log = context.CreateReplaySafeLogger(logger);
-            var input = context.GetInput<OrderDto>();
 
-            var orderDb = await context.CallActivityWithRetryAsync<Order>(nameof(RefreshOrderDataActivity), retryOptions, input);
-            await context.CallActivityWithRetryAsync(nameof(SendOrderCreatedEvent), retryOptions, orderDb);
+            var orderData = context.GetInput<Order>();
+            LogOrchestration(orderData, log, "Order workflow started.");
+
+            await context.CallActivityWithRetryAsync(nameof(PublishOrderCreatedEvent), retryOptions, orderData);
 
             // Wait for order item validation
             var orderItemValidation = await context.WaitForExternalEvent<OrderItemValidationEventData>(OrderEvents.OrderItemValidationEvent);
             if (orderItemValidation.Error)
             {
-                orderDb.Status = OrderStatus.CANCELED;
-                orderDb.CancellationReason = orderItemValidation.ErrorMessage;
+                orderData.Status = OrderStatus.CANCELED;
+                orderData.CancellationReason = orderItemValidation.ErrorMessage;
 
-                LogOrchestration(orderDb, log, $"Order item validation failed ({orderItemValidation.ErrorMessage}). Cancelling order...");
-                return await context.CallActivityWithRetryAsync<Order>(nameof(UpdateOrderStatusActivity), retryOptions, orderDb);
+                LogOrchestration(orderData, log, $"Order item validation failed ({orderItemValidation.ErrorMessage}). Cancelling order...");
+                return await context.CallActivityWithRetryAsync<Order>(nameof(UpdateOrderActivity), retryOptions, orderData);
             }
 
-            var orchestrationModel = new FillOrderItemsDataActivityModel { Order = orderDb, ValidatedProducts = orderItemValidation.Products };
-            orderDb = await context.CallActivityWithRetryAsync<Order>(nameof(FillOrderItemsDataActivity), retryOptions, orchestrationModel);
-            orderDb = await context.CallActivityWithRetryAsync<Order>(nameof(UpdateOrderStatusActivity), retryOptions, orderDb);
+            var orchestrationModel = new FillOrderItemsDataActivityModel { Order = orderData, ValidatedProducts = orderItemValidation.Products };
+            orderData = await context.CallActivityWithRetryAsync<Order>(nameof(FillOrderItemsDataActivity), retryOptions, orchestrationModel);
+            orderData = await context.CallActivityWithRetryAsync<Order>(nameof(UpdateOrderActivity), retryOptions, orderData);
 
-            LogOrchestration(orderDb, log, "Order item validated.");
+            LogOrchestration(orderData, log, "Order item validated.");
 
             // Wait for payment event
             var paymentStatus = await context.WaitForExternalEvent<PaymentStatus>(OrderEvents.PaymentStatusChanged);
-            orderDb.PaymentStatus = paymentStatus;
+            orderData.PaymentStatus = paymentStatus;
 
             // Payment rejected
             if (paymentStatus == PaymentStatus.REJECTED || paymentStatus == PaymentStatus.EXPIRED)
             {
-                orderDb.Status = OrderStatus.CANCELED;
-                orderDb.CancellationReason = paymentStatus switch
+                orderData.Status = OrderStatus.CANCELED;
+                orderData.CancellationReason = paymentStatus switch
                 {
                     PaymentStatus.REJECTED => "Payment rejected",
                     PaymentStatus.EXPIRED => "Payment expired",
                     _ => null
                 };
-                LogOrchestration(orderDb, log, $"Payment failed (Reason: {orderDb.CancellationReason}). Cancelling order...");
-                return await context.CallActivityWithRetryAsync<Order>(nameof(UpdateOrderStatusActivity), retryOptions, orderDb);
+                LogOrchestration(orderData, log, $"Payment failed (Reason: {orderData.CancellationReason}). Cancelling order...");
+                return await context.CallActivityWithRetryAsync<Order>(nameof(UpdateOrderActivity), retryOptions, orderData);
             }
 
             // Payment accepted. Queue the order to the kitchen
-            orderDb.PaidOn = DateTime.UtcNow;
-            orderDb.Status = OrderStatus.QUEUED;
-            orderDb = await context.CallActivityWithRetryAsync<Order>(nameof(UpdateOrderStatusActivity), retryOptions, orderDb);
-            LogOrchestration(orderDb, log, "Payment received. Order has been queued to the kitchen.");
+            orderData.PaidOn = DateTime.UtcNow;
+            orderData.Status = OrderStatus.QUEUED;
+            orderData = await context.CallActivityWithRetryAsync<Order>(nameof(UpdateOrderActivity), retryOptions, orderData);
+            LogOrchestration(orderData, log, "Payment received. Order has been queued to the kitchen.");
 
             // Order status tracking loop
-            while (orderDb.Status != OrderStatus.COMPLETED && orderDb.Status != OrderStatus.CANCELED)
+            while (orderData.Status != OrderStatus.COMPLETED && orderData.Status != OrderStatus.CANCELED)
             {
-                var newOrderStatus = await context.WaitForExternalEvent<OrderStatus>(OrderEvents.OrderStatusChanged);
-                if (newOrderStatus - orderDb.Status == 1 || (orderDb.Status == OrderStatus.QUEUED && newOrderStatus == OrderStatus.CANCELED))
+                var newOrderStatus = orderData.Status == OrderStatus.SERVED ?
+                    await context.WaitForExternalEvent(OrderEvents.OrderStatusChanged, TimeSpan.FromHours(2), OrderStatus.COMPLETED) :
+                    await context.WaitForExternalEvent<OrderStatus>(OrderEvents.OrderStatusChanged);
+
+                if (newOrderStatus - orderData.Status == 1 || (orderData.Status == OrderStatus.QUEUED && newOrderStatus == OrderStatus.CANCELED))
                 {
-                    orderDb.Status = newOrderStatus;
+                    orderData.Status = newOrderStatus;
                     if (newOrderStatus == OrderStatus.SERVED)
                     {
-                        orderDb.ServedOn = DateTime.UtcNow;
+                        orderData.ServedOn = DateTime.UtcNow;
                     }
-                    orderDb = await context.CallActivityWithRetryAsync<Order>(nameof(UpdateOrderStatusActivity), retryOptions, orderDb);
-                    LogOrchestration(orderDb, log, "Order status updated.");
+                    orderData = await context.CallActivityWithRetryAsync<Order>(nameof(UpdateOrderActivity), retryOptions, orderData);
+                    LogOrchestration(orderData, log, "Order status updated.");
                 }
             }
 
-            LogOrchestration(orderDb, log, "Order workflow has been completed");
-            return orderDb;
+            LogOrchestration(orderData, log, "Order workflow has been completed");
+            return orderData;
         }
 
-        [FunctionName(nameof(RefreshOrderDataActivity))]
-        public async Task<Order> RefreshOrderDataActivity([ActivityTrigger] OrderDto orderPayload, CancellationToken cancellationToken)
-        {
-            return await _orderRepository.GetByOrderIdAndCustomerIdAsync(orderPayload.Id, orderPayload.Customer.Id, cancellationToken);
-        }
-
-        [FunctionName(nameof(SendOrderCreatedEvent))]
-        public async Task SendOrderCreatedEvent([ActivityTrigger] Order order,
+        [FunctionName(nameof(PublishOrderCreatedEvent))]
+        public async Task PublishOrderCreatedEvent([ActivityTrigger] Order order,
             [EventGrid(TopicEndpointUri = AppSettingsKeys.EventGridTopicEndpointUri, TopicKeySetting = AppSettingsKeys.EventGridTopicKey)] IAsyncCollector<EventGridEvent> events,
             CancellationToken cancellationToken)
         {
             var eventPayload = JsonConvert.SerializeObject(order.Adapt<OrderDto>());
-            await events.AddAsync(new EventGridEvent(Guid.NewGuid().ToString(),
+            await events.AddAsync(new EventGridEvent(order.Id,
                 OrderEvents.OrderCreated,
                 OrderEvents.OrderEventDataVersion,
                 new BinaryData(eventPayload)), cancellationToken);
@@ -147,23 +145,11 @@ namespace API.Functions.DurableFunctions.OrderCreated
             return order;
         }
 
-        [FunctionName(nameof(UpdateOrderStatusActivity))]
-        public async Task<Order> UpdateOrderStatusActivity(
-            [ActivityTrigger] Order payload,
-            [EventGrid(TopicEndpointUri = AppSettingsKeys.EventGridTopicEndpointUri, TopicKeySetting = AppSettingsKeys.EventGridTopicKey)] IAsyncCollector<EventGridEvent> events,
-            CancellationToken cancellationToken)
+        [FunctionName(nameof(UpdateOrderActivity))]
+        public async Task<Order> UpdateOrderActivity([ActivityTrigger] Order payload, CancellationToken cancellationToken)
         {
-            var order = await _orderRepository.UpsertAsync(payload, cancellationToken);
-
-            // Broadcast order status changed event
-            var eventPayload = JsonConvert.SerializeObject(order.Adapt<OrderDto>());
-            await events.AddAsync(new EventGridEvent(
-                subject: Guid.NewGuid().ToString(),
-                eventType: OrderEvents.OrderStatusChanged,
-                data: new BinaryData(eventPayload),
-                dataVersion: OrderEvents.OrderEventDataVersion), cancellationToken);
-
-            return order;
+            payload.IsNew = false;
+            return await _orderRepository.UpsertAsync(payload, cancellationToken);
         }
     }
 }

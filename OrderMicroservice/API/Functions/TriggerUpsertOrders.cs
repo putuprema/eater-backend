@@ -1,7 +1,11 @@
 using Application.Common.Interfaces;
+using Application.Orders.Queries.GetOrdersByCustomer;
+using Azure.Messaging.EventGrid;
 using Domain.Entities;
 using Mapster;
 using Microsoft.Azure.Documents;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
+using Microsoft.Azure.WebJobs.Extensions.EventGrid;
 using Newtonsoft.Json;
 
 namespace API.Functions
@@ -21,7 +25,9 @@ namespace API.Functions
             collectionName: "Orders",
             ConnectionStringSetting = AppSettingsKeys.CosmosDbConnString,
             LeaseCollectionName = "leases",
-            CreateLeaseCollectionIfNotExists = true)] IReadOnlyList<Document> input)
+            CreateLeaseCollectionIfNotExists = true)] IReadOnlyList<Document> input,
+            [DurableClient] IDurableOrchestrationClient starter,
+            [EventGrid(TopicEndpointUri = AppSettingsKeys.EventGridTopicEndpointUri, TopicKeySetting = AppSettingsKeys.EventGridTopicKey)] IAsyncCollector<EventGridEvent> events)
         {
             if (input != null && input.Count > 0)
             {
@@ -31,15 +37,31 @@ namespace API.Functions
                 {
                     var order = JsonConvert.DeserializeObject<Order>(doc.ToString());
 
-                    // If order is active, replicate changes to the active order container
-                    if (order.Status != OrderStatus.VALIDATING && order.Status != OrderStatus.PENDING_PAYMENT)
+                    // Start order orchestration for newly created orders
+                    if (order.IsNew)
                     {
-                        var activeOrder = order.Adapt<ActiveOrder>();
-                        if (activeOrder.Status == OrderStatus.COMPLETED || activeOrder.Status == OrderStatus.CANCELED)
+                        tasks.Add(starter.StartNewAsync(Orchestrations.OrderOrchestration, order.Id, order));
+                    }
+                    else
+                    {
+                        // Publish order status changed event
+                        var orderDtoPayload = JsonConvert.SerializeObject(order.Adapt<OrderDto>());
+                        await events.AddAsync(new EventGridEvent(
+                            subject: order.Id,
+                            eventType: OrderEvents.OrderStatusChanged,
+                            data: new BinaryData(orderDtoPayload),
+                            dataVersion: OrderEvents.OrderEventDataVersion));
+
+                        // If order is active, replicate changes to the active order container
+                        if (order.Status != OrderStatus.VALIDATING && order.Status != OrderStatus.PENDING_PAYMENT)
                         {
-                            activeOrder.MarkForDeletion();
+                            var activeOrder = order.Adapt<ActiveOrder>();
+                            if (activeOrder.Status == OrderStatus.COMPLETED || activeOrder.Status == OrderStatus.CANCELED)
+                            {
+                                activeOrder.MarkForDeletion();
+                            }
+                            tasks.Add(_activeOrderRepository.UpsertAsync(activeOrder));
                         }
-                        tasks.Add(_activeOrderRepository.UpsertAsync(activeOrder));
                     }
                 }
 

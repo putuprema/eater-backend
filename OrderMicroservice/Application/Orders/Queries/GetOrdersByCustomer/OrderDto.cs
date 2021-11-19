@@ -15,6 +15,7 @@ namespace Application.Orders.Queries.GetOrdersByCustomer
 
     public class OrderDto
     {
+        public bool IsNew { get; set; }
         public string Id { get; set; }
         public CustomerDto Customer { get; set; }
         public TableDto Table { get; set; }
