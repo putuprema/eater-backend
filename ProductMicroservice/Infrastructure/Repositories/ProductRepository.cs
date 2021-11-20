@@ -157,7 +157,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Product>> GetAllByIdsAsync(List<string> ids, CancellationToken cancellationToken = default)
         {
             var feedIterator = _cosmosService.Items.GetItemLinqQueryable<Product>(requestOptions: new QueryRequestOptions { PartitionKey = new PartitionKey(nameof(Product)) })
-                .Where(p => ids.Contains(p.Id))
+                .Where(p => p.Enabled && ids.Contains(p.Id))
                 .ToFeedIterator();
 
             var products = new List<Product>();
