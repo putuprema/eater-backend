@@ -113,7 +113,7 @@ namespace Infrastructure.Repositories
 
         public async Task<Product> UpsertAsync(Product product, bool denyOnVersionMismatch = false, CancellationToken cancellationToken = default)
         {
-            return await _cosmosService.Items.UpsertItemAsync(product, 
+            return await _cosmosService.Items.UpsertItemAsync(product,
                 new PartitionKey(nameof(Product)),
                 new ItemRequestOptions { IfMatchEtag = denyOnVersionMismatch ? product.ETag : null },
                 cancellationToken);

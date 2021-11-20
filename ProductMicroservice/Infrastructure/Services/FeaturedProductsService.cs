@@ -2,12 +2,7 @@
 using Application.Products.Queries.GetFeaturedProducts;
 using Application.Products.Queries.GetProducts;
 using Mapster;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Services
 {

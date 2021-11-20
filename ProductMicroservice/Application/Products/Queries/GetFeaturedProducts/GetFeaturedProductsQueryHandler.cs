@@ -1,8 +1,4 @@
-﻿using Application.ProductCategories.Queries.GetCategory;
-using Application.Products.Queries.GetProducts;
-using System.Collections.Concurrent;
-
-namespace Application.Products.Queries.GetFeaturedProducts
+﻿namespace Application.Products.Queries.GetFeaturedProducts
 {
     public class GetFeaturedProductsQueryHandler : IRequestHandler<GetFeaturedProductsQuery, IEnumerable<FeaturedProductsDto>>
     {
