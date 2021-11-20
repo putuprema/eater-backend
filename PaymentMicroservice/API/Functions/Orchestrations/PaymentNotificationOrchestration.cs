@@ -24,7 +24,7 @@ namespace API.Functions.Orchestrations
                 maxNumberOfAttempts: _durableFunctionConfig.MaxNumberOfAttempts);
 
             var payload = context.GetInput<PaymentNotificationOrchestrationModel>();
-            await context.CallActivityWithRetryAsync<Application.Payments.Query.GetPaymentInfo.PaymentDto>(nameof(HandlePaymentNotificationActivity), retryOptions, payload);
+            await context.CallActivityWithRetryAsync(nameof(HandlePaymentNotificationActivity), retryOptions, payload);
         }
 
         [FunctionName(nameof(HandlePaymentNotificationActivity))]
