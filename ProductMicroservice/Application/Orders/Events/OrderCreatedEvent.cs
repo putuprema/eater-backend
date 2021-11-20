@@ -1,4 +1,4 @@
-﻿namespace Application.Orders
+﻿namespace Application.Orders.Events
 {
     public class OrderItemDto
     {
@@ -10,7 +10,7 @@
         public string Notes { get; set; }
     }
 
-    public class OrderDto
+    public class OrderCreatedEvent
     {
         public string Id { get; set; }
         public List<OrderItemDto> Items { get; set; }

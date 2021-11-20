@@ -1,6 +1,6 @@
 using API.Constants;
 using Application.Common.Interfaces;
-using Application.Orders;
+using Application.Orders.Events;
 using Application.Products.Queries.GetProducts;
 using Azure.Messaging.EventGrid;
 using Mapster;
@@ -8,14 +8,6 @@ using Newtonsoft.Json;
 
 namespace API.Functions.EventHandlers
 {
-    internal class OrderItemValidationEventData
-    {
-        public string OrderId { get; set; }
-        public bool Error { get; set; }
-        public string ErrorMessage { get; set; }
-        public IEnumerable<ProductDto> Products { get; set; }
-    }
-
     public class OrderCreatedEventHandler
     {
         private readonly IProductRepository _productRepository;
@@ -34,9 +26,9 @@ namespace API.Functions.EventHandlers
             CancellationToken cancellationToken)
         {
             var eventData = EventGridEvent.Parse(new BinaryData(myQueueItem));
-            var order = JsonConvert.DeserializeObject<OrderDto>(eventData.Data.ToString());
+            var order = JsonConvert.DeserializeObject<OrderCreatedEvent>(eventData.Data.ToString());
 
-            var validationEventPayload = new OrderItemValidationEventData { OrderId = order.Id };
+            var validationEventPayload = new OrderItemValidationEvent { OrderId = order.Id };
             try
             {
                 var products = await _productRepository.GetAllByIdsAsync(order.Items.Select(item => item.Id).ToList(), cancellationToken);
