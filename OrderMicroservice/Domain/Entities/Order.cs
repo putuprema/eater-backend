@@ -21,7 +21,6 @@ namespace Domain.Entities
         PREPARING,
         READY,
         SERVED,
-        COMPLETED,
         CANCELED
     }
 

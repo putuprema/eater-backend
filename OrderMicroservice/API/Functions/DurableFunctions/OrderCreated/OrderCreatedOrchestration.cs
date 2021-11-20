@@ -79,24 +79,21 @@ namespace API.Functions.DurableFunctions.OrderCreated
             }
 
             // Payment accepted. Queue the order to the kitchen
-            orderData.PaidOn = DateTime.UtcNow;
+            orderData.PaidOn = context.CurrentUtcDateTime;
             orderData.Status = OrderStatus.QUEUED;
             orderData = await context.CallActivityWithRetryAsync<Order>(nameof(UpdateOrderActivity), retryOptions, orderData);
             LogOrchestration(orderData, log, "Payment received. Order has been queued to the kitchen.");
 
             // Order status tracking loop
-            while (orderData.Status != OrderStatus.COMPLETED && orderData.Status != OrderStatus.CANCELED)
+            while (orderData.Status != OrderStatus.SERVED && orderData.Status != OrderStatus.CANCELED)
             {
-                var newOrderStatus = orderData.Status == OrderStatus.SERVED ?
-                    await context.WaitForExternalEvent(OrderEvents.OrderStatusChanged, TimeSpan.FromHours(2), OrderStatus.COMPLETED) :
-                    await context.WaitForExternalEvent<OrderStatus>(OrderEvents.OrderStatusChanged);
-
+                var newOrderStatus = await context.WaitForExternalEvent<OrderStatus>(OrderEvents.OrderStatusChanged);
                 if (newOrderStatus - orderData.Status == 1 || (orderData.Status == OrderStatus.QUEUED && newOrderStatus == OrderStatus.CANCELED))
                 {
                     orderData.Status = newOrderStatus;
                     if (newOrderStatus == OrderStatus.SERVED)
                     {
-                        orderData.ServedOn = DateTime.UtcNow;
+                        orderData.ServedOn = context.CurrentUtcDateTime;
                     }
                     orderData = await context.CallActivityWithRetryAsync<Order>(nameof(UpdateOrderActivity), retryOptions, orderData);
                     LogOrchestration(orderData, log, "Order status updated.");

@@ -56,7 +56,7 @@ namespace API.Functions
                         if (order.Status != OrderStatus.VALIDATING && order.Status != OrderStatus.PENDING_PAYMENT)
                         {
                             var activeOrder = order.Adapt<ActiveOrder>();
-                            if (activeOrder.Status == OrderStatus.COMPLETED || activeOrder.Status == OrderStatus.CANCELED)
+                            if (activeOrder.Status == OrderStatus.SERVED || activeOrder.Status == OrderStatus.CANCELED)
                             {
                                 activeOrder.MarkForDeletion();
                             }

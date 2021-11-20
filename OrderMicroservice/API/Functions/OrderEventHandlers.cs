@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 
 namespace API.Functions
 {
-    public static class EventHandlerFunctions
+    public static class OrderEventHandlers
     {
         [FunctionName("OrderItemValidationEventHandler")]
         public static async Task HandleOrderItemValidationEvent(

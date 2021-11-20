@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Application.Common;
+using Newtonsoft.Json;
 
 namespace API.Extensions
 {
@@ -8,6 +9,24 @@ namespace API.Extensions
         {
             string requestBody = await req.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<T>(requestBody);
+        }
+
+        public static DefaultUserClaims GetDefaultUserClaims(this HttpRequest req)
+        {
+            var claims = new DefaultUserClaims
+            {
+                Id = GetCurrentUserId(req),
+                Name = GetCurrentUserName(req),
+                Email = GetCurrentUserEmail(req),
+                Role = GetCurrentUserRole(req),
+            };
+
+            if (string.IsNullOrEmpty(claims.Id) || string.IsNullOrEmpty(claims.Name) || string.IsNullOrEmpty(claims.Email) || string.IsNullOrEmpty(claims.Role))
+            {
+                throw new UnauthorizedException("Unauthorized");
+            }
+
+            return claims;
         }
 
         public static string GetCurrentUserId(this HttpRequest req)
