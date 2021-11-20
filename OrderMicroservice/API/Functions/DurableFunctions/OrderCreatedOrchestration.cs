@@ -1,4 +1,5 @@
 using Application.Common.Interfaces;
+using Application.Orders.Events;
 using Application.Orders.Queries.GetOrdersByCustomer;
 using Azure.Messaging.EventGrid;
 using Domain.Entities;
@@ -9,7 +10,7 @@ using Microsoft.Azure.WebJobs.Extensions.EventGrid;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
-namespace API.Functions.DurableFunctions.OrderCreated
+namespace API.Functions.DurableFunctions
 {
     public class OrderCreatedOrchestration
     {
@@ -44,7 +45,7 @@ namespace API.Functions.DurableFunctions.OrderCreated
             await context.CallActivityWithRetryAsync(nameof(PublishOrderCreatedEvent), retryOptions, orderData);
 
             // Wait for order item validation
-            var orderItemValidation = await context.WaitForExternalEvent<OrderItemValidationEventData>(OrderEvents.OrderItemValidationEvent);
+            var orderItemValidation = await context.WaitForExternalEvent<OrderItemValidationEvent>(OrderEvents.OrderItemValidationEvent);
             if (orderItemValidation.Error)
             {
                 orderData.Status = OrderStatus.CANCELED;
@@ -148,5 +149,11 @@ namespace API.Functions.DurableFunctions.OrderCreated
             payload.IsNew = false;
             return await _orderRepository.UpsertAsync(payload, cancellationToken);
         }
+    }
+
+    public class FillOrderItemsDataActivityModel
+    {
+        public Order Order { get; set; }
+        public IEnumerable<ProductDto> ValidatedProducts { get; set; }
     }
 }

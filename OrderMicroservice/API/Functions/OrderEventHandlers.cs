@@ -1,5 +1,4 @@
-using API.Functions.DurableFunctions.OrderCreated;
-using Application.Payments;
+using Application.Orders.Events;
 using Azure.Messaging.EventGrid;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Newtonsoft.Json;
@@ -13,7 +12,7 @@ namespace API.Functions
             [ServiceBusTrigger("order.item.validation", Connection = AppSettingsKeys.ServiceBusConnString)] string myQueueItem,
             [DurableClient] IDurableOrchestrationClient durableClient)
         {
-            var eventData = JsonConvert.DeserializeObject<OrderItemValidationEventData>(myQueueItem);
+            var eventData = JsonConvert.DeserializeObject<OrderItemValidationEvent>(myQueueItem);
             await durableClient.RaiseEventAsync(eventData.OrderId, OrderEvents.OrderItemValidationEvent, eventData);
         }
 
@@ -23,7 +22,7 @@ namespace API.Functions
             [DurableClient] IDurableOrchestrationClient durableClient)
         {
             var eventData = EventGridEvent.Parse(new BinaryData(myQueueItem));
-            var payment = JsonConvert.DeserializeObject<PaymentDto>(eventData.Data.ToString());
+            var payment = JsonConvert.DeserializeObject<PaymentEvent>(eventData.Data.ToString());
             await durableClient.RaiseEventAsync(payment.OrderId, OrderEvents.PaymentStatusChanged, payment.Status);
         }
     }

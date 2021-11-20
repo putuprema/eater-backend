@@ -1,7 +1,4 @@
-﻿using Application.Customers;
-using Application.Tables;
-
-namespace Application.Orders.Queries.GetOrdersByCustomer
+﻿namespace Application.Orders.Queries.GetOrdersByCustomer
 {
     public class OrderItemDto
     {
@@ -28,5 +25,18 @@ namespace Application.Orders.Queries.GetOrdersByCustomer
         public DateTime UpdatedOn { get; set; }
         public DateTime? ServedOn { get; set; }
         public DateTime? PaidOn { get; set; }
+    }
+
+    public class CustomerDto
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string Email { get; set; }
+    }
+
+    public class TableDto
+    {
+        public string Id { get; set; }
+        public int Number { get; set; }
     }
 }
