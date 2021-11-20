@@ -24,5 +24,6 @@ TBD
 - [x] Product microservice
 - [x] Table microservice
 - [x] Payment microservice
-- [ ] Order microservice
+- [x] Order microservice
+- [ ] Notification microservice
 - [ ] CI/CD

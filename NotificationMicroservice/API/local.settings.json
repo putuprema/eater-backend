@@ -1,0 +1,11 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": null,
+    "AzureSignalRConnectionString": null,
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "EventGridTopicEndpointUri": null,
+    "EventGridTopicKey": null,
+    "ServiceBusConnString": null
+  }
+}

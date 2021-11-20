@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <AzureFunctionsVersion>v4</AzureFunctionsVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>5d89b892-445c-4d20-8106-b66807721a74</UserSecretsId>
+    </PropertyGroup>
+    <ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
+		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.6.0" />
+		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.EventGrid" Version="3.0.0" />
+		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="5.1.0" />
+		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.SignalRService" Version="1.6.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.0" />
+        <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.1" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Application\Application.csproj" />
+      <ProjectReference Include="..\Domain\Domain.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <None Update="host.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="local.settings.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+        </None>
+    </ItemGroup>
+	<ItemGroup>
+		<Using Include="API.Constants" />
+		<Using Include="API.Extensions" />
+		<Using Include="API.Hubs" />
+		<Using Include="Application.Common" />
+		<Using Include="Domain.Exceptions" />
+		<Using Include="Newtonsoft.Json" />
+		<Using Include="Azure.Messaging.EventGrid" />
+		<Using Include="Microsoft.AspNetCore.Http" />
+		<Using Include="Microsoft.AspNetCore.Mvc" />
+		<Using Include="Microsoft.Azure.WebJobs" />
+		<Using Include="Microsoft.Azure.WebJobs.Extensions.Http" />
+		<Using Include="Microsoft.Extensions.Logging" />
+		<Using Include="Microsoft.Azure.WebJobs.Extensions.SignalRService" />
+	</ItemGroup>
+</Project>
