@@ -48,9 +48,9 @@ namespace API.Functions
                         var orderDtoPayload = JsonConvert.SerializeObject(order.Adapt<OrderDto>());
                         await events.AddAsync(new EventGridEvent(
                             subject: order.Id,
-                            eventType: OrderEvents.OrderStatusChanged,
+                            eventType: Events.OrderStatusChanged,
                             data: new BinaryData(orderDtoPayload),
-                            dataVersion: OrderEvents.OrderEventDataVersion));
+                            dataVersion: Events.EventDataVersion));
 
                         // If order is active, replicate changes to the active order container
                         if (order.Status != OrderStatus.VALIDATING && order.Status != OrderStatus.PENDING_PAYMENT)

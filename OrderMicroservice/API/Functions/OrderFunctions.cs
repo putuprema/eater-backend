@@ -58,7 +58,7 @@ namespace API.Functions
                         throw new BadRequestException("This order is no longer active");
                     }
 
-                    await durableClient.RaiseEventAsync(id, OrderEvents.OrderStatusChanged, orderStatus);
+                    await durableClient.RaiseEventAsync(id, Events.OrderStatusChanged, orderStatus);
                     return new OkResult();
                 }
 

@@ -34,11 +34,10 @@ namespace Domain.Entities
         public List<OrderItem> Items { get; set; }
         public OrderStatus Status { get; set; } = OrderStatus.VALIDATING;
         public string CancellationReason { get; set; }
-        public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.UNPAID;
+        public Payment Payment { get; set; }
         public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedOn { get; set; } = DateTime.UtcNow;
         public DateTime? ServedOn { get; set; }
-        public DateTime? PaidOn { get; set; }
         [JsonProperty("_etag")]
         public string ETag { get; set; }
     }

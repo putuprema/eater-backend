@@ -1,5 +1,4 @@
-using Application.Orders.Events;
-using Azure.Messaging.EventGrid;
+using Domain.Entities;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Newtonsoft.Json;
 
@@ -7,13 +6,13 @@ namespace API.Functions
 {
     public static class OrderEventHandlers
     {
-        [FunctionName("OrderItemValidationEventHandler")]
-        public static async Task HandleOrderItemValidationEvent(
-            [ServiceBusTrigger("order.item.validation", Connection = AppSettingsKeys.ServiceBusConnString)] string myQueueItem,
+        [FunctionName("OrderSagaReplyEventHandler")]
+        public static async Task HandleOrderSageReplyEvent(
+            [ServiceBusTrigger("order.saga.reply", Connection = AppSettingsKeys.ServiceBusConnString)] string myQueueItem,
             [DurableClient] IDurableOrchestrationClient durableClient)
         {
-            var eventData = JsonConvert.DeserializeObject<OrderItemValidationEvent>(myQueueItem);
-            await durableClient.RaiseEventAsync(eventData.OrderId, OrderEvents.OrderItemValidationEvent, eventData);
+            var eventData = JsonConvert.DeserializeObject<EventEnvelope<dynamic>>(myQueueItem);
+            await durableClient.RaiseEventAsync(eventData.CorrelationId, eventData.EventType, eventData);
         }
 
         [FunctionName("PaymentEventHandler")]
@@ -21,9 +20,8 @@ namespace API.Functions
             [ServiceBusTrigger("order.payment.event", Connection = AppSettingsKeys.ServiceBusConnString)] string myQueueItem,
             [DurableClient] IDurableOrchestrationClient durableClient)
         {
-            var eventData = EventGridEvent.Parse(new BinaryData(myQueueItem));
-            var payment = JsonConvert.DeserializeObject<PaymentEvent>(eventData.Data.ToString());
-            await durableClient.RaiseEventAsync(payment.OrderId, OrderEvents.PaymentStatusChanged, payment.Status);
+            var paymentEvt = JsonConvert.DeserializeObject<EventEnvelope<Payment>>(myQueueItem);
+            await durableClient.RaiseEventAsync(paymentEvt.CorrelationId, Events.PaymentStatusChanged, paymentEvt.Body);
         }
     }
 }

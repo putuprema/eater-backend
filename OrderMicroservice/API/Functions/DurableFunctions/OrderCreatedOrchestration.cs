@@ -1,14 +1,11 @@
 using Application.Common.Interfaces;
-using Application.Orders.Events;
+using Application.Orders.Commands;
 using Application.Orders.Queries.GetOrdersByCustomer;
-using Azure.Messaging.EventGrid;
 using Domain.Entities;
 using Infrastructure.Config;
 using Mapster;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
-using Microsoft.Azure.WebJobs.Extensions.EventGrid;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 
 namespace API.Functions.DurableFunctions
 {
@@ -42,34 +39,52 @@ namespace API.Functions.DurableFunctions
             var orderData = context.GetInput<Order>();
             LogOrchestration(orderData, log, "Order workflow started.");
 
-            await context.CallActivityWithRetryAsync(nameof(PublishOrderCreatedEvent), retryOptions, orderData);
+            await context.CallActivityWithRetryAsync(nameof(ProduceOrderItemValidationCommand), retryOptions, orderData);
 
             // Wait for order item validation
-            var orderItemValidation = await context.WaitForExternalEvent<OrderItemValidationEvent>(OrderEvents.OrderItemValidationEvent);
-            if (orderItemValidation.Error)
+            var orderItemValidation = await context.WaitForExternalEvent<EventEnvelope<OrderItemValidationEvent>>(Events.OrderItemValidationEvent);
+            if (!orderItemValidation.Success)
             {
                 orderData.Status = OrderStatus.CANCELED;
-                orderData.CancellationReason = orderItemValidation.ErrorMessage;
+                orderData.CancellationReason = orderItemValidation.Body.ErrorMessage;
 
-                LogOrchestration(orderData, log, $"Order item validation failed ({orderItemValidation.ErrorMessage}). Cancelling order...");
+                LogOrchestration(orderData, log, $"Order item validation failed ({orderData.CancellationReason}). Cancelling order...");
                 return await context.CallActivityWithRetryAsync<Order>(nameof(UpdateOrderActivity), retryOptions, orderData);
             }
 
-            var orchestrationModel = new FillOrderItemsDataActivityModel { Order = orderData, ValidatedProducts = orderItemValidation.Products };
+            var orchestrationModel = new FillOrderItemsDataActivityModel { Order = orderData, ValidatedProducts = orderItemValidation.Body.Products };
             orderData = await context.CallActivityWithRetryAsync<Order>(nameof(FillOrderItemsDataActivity), retryOptions, orchestrationModel);
-            orderData = await context.CallActivityWithRetryAsync<Order>(nameof(UpdateOrderActivity), retryOptions, orderData);
 
             LogOrchestration(orderData, log, "Order item validated.");
 
-            // Wait for payment event
-            var paymentStatus = await context.WaitForExternalEvent<PaymentStatus>(OrderEvents.PaymentStatusChanged);
-            orderData.PaymentStatus = paymentStatus;
+            await context.CallActivityWithRetryAsync(nameof(ProduceInitPaymentCommand), retryOptions, orderData);
 
-            // Payment rejected
-            if (paymentStatus == PaymentStatus.REJECTED || paymentStatus == PaymentStatus.EXPIRED)
+            // Wait for init payment event
+            var initPaymentEvent = await context.WaitForExternalEvent<EventEnvelope<Payment>>(Events.InitPaymentEvent);
+            if (!initPaymentEvent.Success)
             {
                 orderData.Status = OrderStatus.CANCELED;
-                orderData.CancellationReason = paymentStatus switch
+                orderData.CancellationReason = "Init payment failed";
+
+                LogOrchestration(orderData, log, $"Order init payment failed. Cancelling order...");
+                return await context.CallActivityWithRetryAsync<Order>(nameof(UpdateOrderActivity), retryOptions, orderData);
+            }
+
+            orderData.Status = OrderStatus.PENDING_PAYMENT;
+            orderData.Payment = initPaymentEvent.Body;
+            orderData = await context.CallActivityWithRetryAsync<Order>(nameof(UpdateOrderActivity), retryOptions, orderData);
+
+            LogOrchestration(orderData, log, "Order payment init success. Waiting for payment.");
+
+            // Wait for payment status event
+            var paymentStatusEvent = await context.WaitForExternalEvent<Payment>(Events.PaymentStatusChanged);
+            orderData.Payment = paymentStatusEvent;
+
+            // Payment rejected
+            if (orderData.Payment.Status == PaymentStatus.REJECTED || orderData.Payment.Status == PaymentStatus.EXPIRED)
+            {
+                orderData.Status = OrderStatus.CANCELED;
+                orderData.CancellationReason = orderData.Payment.Status switch
                 {
                     PaymentStatus.REJECTED => "Payment rejected",
                     PaymentStatus.EXPIRED => "Payment expired",
@@ -80,7 +95,6 @@ namespace API.Functions.DurableFunctions
             }
 
             // Payment accepted. Queue the order to the kitchen
-            orderData.PaidOn = context.CurrentUtcDateTime;
             orderData.Status = OrderStatus.QUEUED;
             orderData = await context.CallActivityWithRetryAsync<Order>(nameof(UpdateOrderActivity), retryOptions, orderData);
             LogOrchestration(orderData, log, "Payment received. Order has been queued to the kitchen.");
@@ -88,7 +102,7 @@ namespace API.Functions.DurableFunctions
             // Order status tracking loop
             while (orderData.Status != OrderStatus.SERVED && orderData.Status != OrderStatus.CANCELED)
             {
-                var newOrderStatus = await context.WaitForExternalEvent<OrderStatus>(OrderEvents.OrderStatusChanged);
+                var newOrderStatus = await context.WaitForExternalEvent<OrderStatus>(Events.OrderStatusChanged);
                 if (newOrderStatus - orderData.Status == 1 || (orderData.Status == OrderStatus.QUEUED && newOrderStatus == OrderStatus.CANCELED))
                 {
                     orderData.Status = newOrderStatus;
@@ -105,16 +119,18 @@ namespace API.Functions.DurableFunctions
             return orderData;
         }
 
-        [FunctionName(nameof(PublishOrderCreatedEvent))]
-        public async Task PublishOrderCreatedEvent([ActivityTrigger] Order order,
-            [EventGrid(TopicEndpointUri = AppSettingsKeys.EventGridTopicEndpointUri, TopicKeySetting = AppSettingsKeys.EventGridTopicKey)] IAsyncCollector<EventGridEvent> events,
-            CancellationToken cancellationToken)
+        [FunctionName(nameof(ProduceOrderItemValidationCommand))]
+        public async Task ProduceOrderItemValidationCommand([ActivityTrigger] Order order,
+            [ServiceBus("order.item.validation.cmd", Connection = AppSettingsKeys.ServiceBusConnString)] IAsyncCollector<OrderDto> commands)
         {
-            var eventPayload = JsonConvert.SerializeObject(order.Adapt<OrderDto>());
-            await events.AddAsync(new EventGridEvent(order.Id,
-                OrderEvents.OrderCreated,
-                OrderEvents.OrderEventDataVersion,
-                new BinaryData(eventPayload)), cancellationToken);
+            await commands.AddAsync(order.Adapt<OrderDto>());
+        }
+
+        [FunctionName(nameof(ProduceInitPaymentCommand))]
+        public async Task ProduceInitPaymentCommand([ActivityTrigger] Order order,
+            [ServiceBus("init.payment.cmd", Connection = AppSettingsKeys.ServiceBusConnString)] IAsyncCollector<InitPaymentCommand> commands)
+        {
+            await commands.AddAsync(new InitPaymentCommand(order));
         }
 
         [FunctionName(nameof(FillOrderItemsDataActivity))]
@@ -139,7 +155,6 @@ namespace API.Functions.DurableFunctions
             }).ToList();
 
             order.Amount = totalAmount;
-            order.Status = OrderStatus.PENDING_PAYMENT;
             return order;
         }
 
@@ -154,6 +169,6 @@ namespace API.Functions.DurableFunctions
     public class FillOrderItemsDataActivityModel
     {
         public Order Order { get; set; }
-        public IEnumerable<ProductDto> ValidatedProducts { get; set; }
+        public IEnumerable<OrderItem> ValidatedProducts { get; set; }
     }
 }

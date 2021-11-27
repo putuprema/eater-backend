@@ -19,12 +19,20 @@
         public int Amount { get; set; }
         public List<OrderItemDto> Items { get; set; }
         public OrderStatus Status { get; set; }
-        public PaymentStatus PaymentStatus { get; set; }
+        public PaymentDto Payment { get; set; }
         public string CancellationReason { get; set; }
         public DateTime CreatedOn { get; set; }
         public DateTime UpdatedOn { get; set; }
         public DateTime? ServedOn { get; set; }
-        public DateTime? PaidOn { get; set; }
+    }
+
+    public class PaymentDto
+    {
+        public PaymentStatus Status { get; set; }
+        public string Token { get; set; }
+        public string RedirectUrl { get; set; }
+        public DateTime CreatedOn { get; set; }
+        public DateTime UpdatedOn { get; set; }
     }
 
     public class CustomerDto
