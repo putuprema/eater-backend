@@ -29,6 +29,9 @@
     <ItemGroup>
 	    <Using Include="API.Extensions" />
 	    <Using Include="Domain.Exceptions" />
+		<Using Include="Domain.Common" />
+		<Using Include="Domain.Constants" />
+		<Using Include="Domain.Events" />
 	    <Using Include="FluentValidation" />
 	    <Using Include="MediatR" />
 	    <Using Include="Microsoft.AspNetCore.Http" />

@@ -22,7 +22,9 @@
 		<Using Include="FluentValidation" />
 		<Using Include="Mapster" />
 		<Using Include="Application.Common.Interfaces" />
+		<Using Include="Domain.Common" />
 		<Using Include="Domain.Constants" />
+		<Using Include="Domain.Events" />
 		<Using Include="Domain.Entities" />
 		<Using Include="Domain.Exceptions" />
 	</ItemGroup>

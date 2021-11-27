@@ -1,6 +1,6 @@
-﻿namespace Application.Orders.Events
+﻿namespace Domain.Events
 {
-    public class OrderItemDto
+    public class OrderItem
     {
         public string Id { get; set; }
         public string Name { get; set; }
@@ -13,6 +13,6 @@
     public class OrderCreatedEvent
     {
         public string Id { get; set; }
-        public List<OrderItemDto> Items { get; set; }
+        public List<OrderItem> Items { get; set; }
     }
 }
