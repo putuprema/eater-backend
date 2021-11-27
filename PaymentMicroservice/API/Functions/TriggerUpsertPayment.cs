@@ -1,9 +1,7 @@
 using Application.Payments.Query.GetPaymentInfo;
-using Azure.Messaging.EventGrid;
 using Domain.Entities;
 using Mapster;
 using Microsoft.Azure.Documents;
-using Microsoft.Azure.WebJobs.Extensions.EventGrid;
 using Newtonsoft.Json;
 
 namespace API.Functions
@@ -17,7 +15,7 @@ namespace API.Functions
             ConnectionStringSetting = AppSettingsKeys.CosmosDbConnString,
             LeaseCollectionName = "leases",
             CreateLeaseCollectionIfNotExists = true)] IReadOnlyList<Document> input,
-            [EventGrid(TopicEndpointUri = AppSettingsKeys.EventGridTopicEndpointUri, TopicKeySetting = AppSettingsKeys.EventGridTopicKey)] IAsyncCollector<EventGridEvent> events,
+            [ServiceBus("order.payment.event", Connection = AppSettingsKeys.ServiceBusConnString)] IAsyncCollector<EventEnvelope<PaymentDto>> events,
             ILogger log,
             CancellationToken cancellationToken)
         {
@@ -28,11 +26,17 @@ namespace API.Functions
                     log.LogInformation($"Payment Upsert: {doc}");
                     var payment = JsonConvert.DeserializeObject<Payment>(doc.ToString());
 
-                    var eventPayload = JsonConvert.SerializeObject(payment.Adapt<PaymentDto>());
-                    await events.AddAsync(new EventGridEvent(Guid.NewGuid().ToString(),
-                        PaymentEvents.EventTypePaymentStatusChanged,
-                        PaymentEvents.PaymentEventDataVersion,
-                        new BinaryData(eventPayload)), cancellationToken);
+                    if (payment.Status != PaymentStatus.UNPAID)
+                    {
+                        var eventPayload = new EventEnvelope<PaymentDto>
+                        {
+                            CorrelationId = payment.OrderId,
+                            EventType = Events.PaymentStatusChanged,
+                            Body = payment.Adapt<PaymentDto>()
+                        };
+
+                        await events.AddAsync(eventPayload, cancellationToken);
+                    }
                 }
             }
         }

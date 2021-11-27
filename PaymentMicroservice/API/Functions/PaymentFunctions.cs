@@ -1,6 +1,8 @@
 using API.Functions.Orchestrations;
 using Application.Payments.Commands.InitPayment;
+using Application.Payments.Query.GetPaymentInfo;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
+using Newtonsoft.Json;
 
 namespace API.Functions
 {
@@ -29,29 +31,25 @@ namespace API.Functions
         }
 
         [FunctionName(nameof(InitPayment))]
-        public async Task<IActionResult> InitPayment([HttpTrigger(AuthorizationLevel.Function, "post", Route = "v1/payment/init")] HttpRequest req, CancellationToken cancellationToken)
+        [return: ServiceBus("order.saga.reply", Connection = AppSettingsKeys.ServiceBusConnString)]
+        public async Task<string> InitPayment(
+            [ServiceBusTrigger("init.payment.cmd", Connection = AppSettingsKeys.ServiceBusConnString)] string myQueueItem,
+            CancellationToken cancellationToken)
         {
-            var cancellationTokens = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, req.HttpContext.RequestAborted).Token;
+            var command = JsonConvert.DeserializeObject<InitPaymentCommand>(myQueueItem);
+            var resultingEvent = new EventEnvelope<PaymentDto> { CorrelationId = command.OrderId, EventType = Events.InitPaymentEvent };
+
             try
             {
-                var request = await req.ReadFromJsonAsync<InitPaymentCommand>();
-                if (request == null)
-                    return new BadRequestResult();
+                var result = await _mediator.Send(command, cancellationToken);
+                resultingEvent.Body = result;
+            }
+            catch (Exception)
+            {
+                resultingEvent.Success = false;
+            }
 
-                var result = await _mediator.Send(request, cancellationTokens);
-                return new OkObjectResult(result);
-            }
-            catch (ValidationException ex)
-            {
-                return ex.GetResponse();
-            }
-            catch (AppException ex)
-            {
-                return new ObjectResult(ex.GetResponse())
-                {
-                    StatusCode = ex.StatusCode
-                };
-            }
+            return JsonConvert.SerializeObject(resultingEvent);
         }
     }
 }

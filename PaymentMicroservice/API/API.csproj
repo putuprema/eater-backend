@@ -10,6 +10,7 @@
 		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.CosmosDB" Version="3.0.10" />
 		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.6.0" />
 		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.EventGrid" Version="3.0.0" />
+		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="5.1.0" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.0" />
 		<PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.1" />
     </ItemGroup>
@@ -26,6 +27,8 @@
         </None>
     </ItemGroup>
 	<ItemGroup>
+		<Using Include="Domain.Common" />
+		<Using Include="Domain.Constants" />
 		<Using Include="API.Extensions" />
 		<Using Include="API.Constants" />
 		<Using Include="API.Models" />

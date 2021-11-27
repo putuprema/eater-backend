@@ -5,5 +5,6 @@
         public const string EventGridTopicEndpointUri = "EventGridTopicEndpointUri";
         public const string EventGridTopicKey = "EventGridTopicKey";
         public const string CosmosDbConnString = "CosmosConfig:ConnString";
+        public const string ServiceBusConnString = "ServiceBusConnString";
     }
 }

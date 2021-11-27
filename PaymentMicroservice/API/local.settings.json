@@ -10,6 +10,7 @@
     "Stripe:ApiKey": null,
     "Stripe:WebhookSecret": null,
     "EventGridTopicEndpointUri": null,
-    "EventGridTopicKey": null
+    "EventGridTopicKey": null,
+    "ServiceBusConnString": null
   }
 }
