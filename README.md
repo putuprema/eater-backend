@@ -1,5 +1,12 @@
 # Eater
 
+[![Deploy Account Service](https://github.com/putuprema/eater-backend/actions/workflows/account-service-deploy.yml/badge.svg)](https://github.com/putuprema/eater-backend/actions/workflows/account-service-deploy.yml)
+[![Deploy Notification Service](https://github.com/putuprema/eater-backend/actions/workflows/notification-service-deploy.yml/badge.svg)](https://github.com/putuprema/eater-backend/actions/workflows/notification-service-deploy.yml)
+[![Deploy Order Service](https://github.com/putuprema/eater-backend/actions/workflows/order-service-deploy.yml/badge.svg)](https://github.com/putuprema/eater-backend/actions/workflows/order-service-deploy.yml)
+[![Deploy Payment Service](https://github.com/putuprema/eater-backend/actions/workflows/payment-service-deploy.yml/badge.svg)](https://github.com/putuprema/eater-backend/actions/workflows/payment-service-deploy.yml)
+[![Deploy Product Service](https://github.com/putuprema/eater-backend/actions/workflows/product-service-deploy.yml/badge.svg)](https://github.com/putuprema/eater-backend/actions/workflows/product-service-deploy.yml)
+[![Deploy Table Service](https://github.com/putuprema/eater-backend/actions/workflows/table-service-deploy.yml/badge.svg)](https://github.com/putuprema/eater-backend/actions/workflows/table-service-deploy.yml)
+
 Eater is a restaurant food ordering application for contactless dining experience. This repository is the backend for the application, employing event-driven microservices with Clean Architecture using CQRS (Command Query Responsibility Segregation) and Saga design pattern.
 
 ### Architecture
