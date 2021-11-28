@@ -23,6 +23,7 @@
 
         public static class OrderStatus
         {
+            public const string OrderQueued = "OrderQueued";
             public const string OrderStatusChanged = "OrderStatusChanged";
         }
     }

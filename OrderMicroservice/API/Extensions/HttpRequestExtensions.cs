@@ -1,5 +1,4 @@
-﻿using Application.Common;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace API.Extensions
 {
@@ -13,20 +12,17 @@ namespace API.Extensions
 
         public static DefaultUserClaims GetDefaultUserClaims(this HttpRequest req)
         {
-            var claims = new DefaultUserClaims
-            {
-                Id = GetCurrentUserId(req),
-                Name = GetCurrentUserName(req),
-                Email = GetCurrentUserEmail(req),
-                Role = GetCurrentUserRole(req),
-            };
+            var userId = GetCurrentUserId(req);
+            var userName = GetCurrentUserName(req);
+            var email = GetCurrentUserEmail(req);
+            var role = GetCurrentUserRole(req);
 
-            if (string.IsNullOrEmpty(claims.Id) || string.IsNullOrEmpty(claims.Name) || string.IsNullOrEmpty(claims.Email) || string.IsNullOrEmpty(claims.Role))
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(role))
             {
                 throw new UnauthorizedException("Unauthorized");
             }
 
-            return claims;
+            return new DefaultUserClaims(userId, userName, email, role);
         }
 
         public static string GetCurrentUserId(this HttpRequest req)

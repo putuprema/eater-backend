@@ -25,7 +25,7 @@
 		<Using Include="Application.Common.Interfaces" />
 		<Using Include="Domain.Constants" />
 		<Using Include="Domain.Entities" />
-		<Using Include="Domain.Exceptions" />
+		<Using Include="Eater.Shared.Exceptions" />
 		<Using Include="Infrastructure.Config" />
 		<Using Include="Infrastructure.Cosmos" />
 		<Using Include="Infrastructure.Services" />

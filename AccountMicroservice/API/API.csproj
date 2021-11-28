@@ -25,7 +25,7 @@
 	<ItemGroup>
 		<Using Include="API.Extensions" />
 		<Using Include="Domain.Constants" />
-		<Using Include="Domain.Exceptions" />
+		<Using Include="Eater.Shared.Exceptions" />
 		<Using Include="FluentValidation" />
 		<Using Include="MediatR" />
 		<Using Include="Microsoft.AspNetCore.Http" />

@@ -31,7 +31,7 @@
 		<Using Include="API.Extensions" />
 		<Using Include="API.Constants" />
 		<Using Include="API.Models" />
-		<Using Include="Domain.Exceptions" />
+		<Using Include="Eater.Shared.Exceptions" />
 		<Using Include="FluentValidation" />
 		<Using Include="MediatR" />
 		<Using Include="Microsoft.AspNetCore.Http" />

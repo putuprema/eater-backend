@@ -2,7 +2,6 @@ using Application.Common.Interfaces;
 using Application.Orders.Commands;
 using Application.Orders.Queries.GetOrdersByCustomer;
 using Domain.Entities;
-using Eater.Shared.Common;
 using Eater.Shared.Constants;
 using Infrastructure.Config;
 using Mapster;

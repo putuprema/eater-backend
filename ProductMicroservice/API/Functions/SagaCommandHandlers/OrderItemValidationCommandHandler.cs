@@ -1,6 +1,5 @@
 using API.Constants;
 using Application.Common.Interfaces;
-using Eater.Shared.Common;
 using Eater.Shared.Constants;
 using Newtonsoft.Json;
 

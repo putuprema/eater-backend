@@ -15,6 +15,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\Eater.Shared\Eater.Shared.csproj" />
 		<ProjectReference Include="..\Application\Application.csproj" />
 	</ItemGroup>
 
@@ -22,7 +23,8 @@
 		<Using Include="Application.Common.Interfaces" />
 		<Using Include="Domain.Constants" />
 		<Using Include="Domain.Entities" />
-		<Using Include="Domain.Exceptions" />
+		<Using Include="Eater.Shared.Common" />
+		<Using Include="Eater.Shared.Exceptions" />
 		<Using Include="Infrastructure.Cosmos" />
 		<Using Include="Infrastructure.Services" />
 		<Using Include="Newtonsoft.Json" />

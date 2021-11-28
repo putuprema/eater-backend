@@ -17,6 +17,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\Eater.Shared\Eater.Shared.csproj" />
 		<ProjectReference Include="..\Domain\Domain.csproj" />
 	</ItemGroup>
 
@@ -26,7 +27,7 @@
 		<Using Include="Mapster" />
 		<Using Include="Application.Common.Interfaces" />
 		<Using Include="Domain.Entities" />
-		<Using Include="Domain.Exceptions" />
+		<Using Include="Eater.Shared.Exceptions" />
 	</ItemGroup>
 
 </Project>

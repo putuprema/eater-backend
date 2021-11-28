@@ -1,4 +1,3 @@
-using Eater.Shared.Common;
 using Eater.Shared.Constants;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Newtonsoft.Json;

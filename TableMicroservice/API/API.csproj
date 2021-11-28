@@ -28,7 +28,7 @@
 		<Using Include="Infrastructure.Config" />
 		<Using Include="API.Extensions" />
 		<Using Include="Domain.Entities" />
-		<Using Include="Domain.Exceptions" />
+		<Using Include="Eater.Shared.Exceptions" />
 		<Using Include="FluentValidation" />
 		<Using Include="MediatR" />
 		<Using Include="Microsoft.AspNetCore.Http" />

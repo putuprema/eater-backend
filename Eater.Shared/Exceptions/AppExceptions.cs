@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Domain.Exceptions
+namespace Eater.Shared.Exceptions
 {
     public class BadRequestException : AppException
     {
@@ -19,6 +19,13 @@ namespace Domain.Exceptions
     public class ForbiddenException : AppException
     {
         public ForbiddenException(string message) : base((int)HttpStatusCode.Forbidden, message)
+        {
+        }
+    }
+
+    public class UnauthorizedException : AppException
+    {
+        public UnauthorizedException(string message) : base((int)HttpStatusCode.Unauthorized, message)
         {
         }
     }

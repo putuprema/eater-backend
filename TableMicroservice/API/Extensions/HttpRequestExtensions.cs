@@ -9,10 +9,5 @@ namespace API.Extensions
             string requestBody = await req.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<T>(requestBody);
         }
-
-        public static string GetCurrentUserId(this HttpRequest req)
-        {
-            return req.Headers["CurrentUserId"];
-        }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Domain.Exceptions
+﻿namespace Eater.Shared.Exceptions
 {
     public class AppException : Exception
     {
