@@ -2,6 +2,7 @@ using Application.Common.Interfaces;
 using Application.Orders.Queries.GetOrdersByCustomer;
 using Azure.Messaging.EventGrid;
 using Domain.Entities;
+using Eater.Shared.Constants;
 using Mapster;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
@@ -48,9 +49,9 @@ namespace API.Functions
                         var orderDtoPayload = JsonConvert.SerializeObject(order.Adapt<OrderDto>());
                         await events.AddAsync(new EventGridEvent(
                             subject: order.Id,
-                            eventType: Events.OrderStatusChanged,
+                            eventType: Events.OrderStatus.OrderStatusChanged,
                             data: new BinaryData(orderDtoPayload),
-                            dataVersion: Events.EventDataVersion));
+                            dataVersion: Events.PayloadVersion));
 
                         // If order is active, replicate changes to the active order container
                         if (order.Status != OrderStatus.VALIDATING && order.Status != OrderStatus.PENDING_PAYMENT)

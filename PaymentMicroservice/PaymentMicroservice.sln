@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Infrastru
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "API", "API\API.csproj", "{03A7765C-4EDB-445E-91F9-326D67CCFD0B}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eater.Shared", "..\Eater.Shared\Eater.Shared.csproj", "{8D9D6955-0C67-4578-AB4B-F024104E4EC6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{03A7765C-4EDB-445E-91F9-326D67CCFD0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{03A7765C-4EDB-445E-91F9-326D67CCFD0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{03A7765C-4EDB-445E-91F9-326D67CCFD0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D9D6955-0C67-4578-AB4B-F024104E4EC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D9D6955-0C67-4578-AB4B-F024104E4EC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D9D6955-0C67-4578-AB4B-F024104E4EC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D9D6955-0C67-4578-AB4B-F024104E4EC6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

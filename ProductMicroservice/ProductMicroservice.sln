@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "Domain\Domain.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{6BFD1EA9-6EDD-4819-A21F-E909A11AFAA4}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eater.Shared", "..\Eater.Shared\Eater.Shared.csproj", "{8E8E7278-F522-409B-B608-3C3E8E2C3E97}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{6BFD1EA9-6EDD-4819-A21F-E909A11AFAA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6BFD1EA9-6EDD-4819-A21F-E909A11AFAA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6BFD1EA9-6EDD-4819-A21F-E909A11AFAA4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E8E7278-F522-409B-B608-3C3E8E2C3E97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E8E7278-F522-409B-B608-3C3E8E2C3E97}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E8E7278-F522-409B-B608-3C3E8E2C3E97}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E8E7278-F522-409B-B608-3C3E8E2C3E97}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

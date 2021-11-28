@@ -4,6 +4,7 @@ using Application.Orders.Queries.GetActiveOrders;
 using Application.Orders.Queries.GetCustomerOrder;
 using Application.Orders.Queries.GetOrdersByCustomer;
 using Domain.Entities;
+using Eater.Shared.Constants;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 
 namespace API.Functions
@@ -58,7 +59,7 @@ namespace API.Functions
                         throw new BadRequestException("This order is no longer active");
                     }
 
-                    await durableClient.RaiseEventAsync(id, Events.OrderStatusChanged, orderStatus);
+                    await durableClient.RaiseEventAsync(id, Events.OrderStatus.OrderStatusChanged, orderStatus);
                     return new OkResult();
                 }
 

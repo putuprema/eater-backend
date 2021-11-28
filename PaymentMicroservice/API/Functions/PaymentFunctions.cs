@@ -1,6 +1,8 @@
 using API.Functions.Orchestrations;
 using Application.Payments.Commands.InitPayment;
 using Application.Payments.Query.GetPaymentInfo;
+using Eater.Shared.Common;
+using Eater.Shared.Constants;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Newtonsoft.Json;
 
@@ -31,25 +33,25 @@ namespace API.Functions
         }
 
         [FunctionName(nameof(InitPayment))]
-        [return: ServiceBus("order.saga.reply", Connection = AppSettingsKeys.ServiceBusConnString)]
-        public async Task<string> InitPayment(
-            [ServiceBusTrigger("init.payment.cmd", Connection = AppSettingsKeys.ServiceBusConnString)] string myQueueItem,
+        [return: ServiceBus(QueueNames.OrderOrchestrationEvent, Connection = AppSettingsKeys.ServiceBusConnString)]
+        public async Task<EventEnvelope<PaymentDto>> InitPayment(
+            [ServiceBusTrigger(QueueNames.InitPaymentCmd, Connection = AppSettingsKeys.ServiceBusConnString)] string myQueueItem,
             CancellationToken cancellationToken)
         {
             var command = JsonConvert.DeserializeObject<InitPaymentCommand>(myQueueItem);
-            var resultingEvent = new EventEnvelope<PaymentDto> { CorrelationId = command.OrderId, EventType = Events.InitPaymentEvent };
+            var resultingEvent = new EventEnvelope<PaymentDto>(command.OrderId, nameof(Events.InitPayment), Events.InitPayment.InitPaymentSuccess, null);
 
             try
             {
                 var result = await _mediator.Send(command, cancellationToken);
                 resultingEvent.Body = result;
             }
-            catch (Exception)
+            catch (AppException)
             {
-                resultingEvent.Success = false;
+                resultingEvent.EventType = Events.InitPayment.InitPaymentFailed;
             }
 
-            return JsonConvert.SerializeObject(resultingEvent);
+            return resultingEvent;
         }
     }
 }

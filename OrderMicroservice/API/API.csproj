@@ -15,6 +15,7 @@
 		<PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.1" />
     </ItemGroup>
 	<ItemGroup>
+		<ProjectReference Include="..\..\Eater.Shared\Eater.Shared.csproj" />
 		<ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
 	</ItemGroup>
     <ItemGroup>
@@ -30,7 +31,6 @@
 		<Using Include="API.Extensions" />
 		<Using Include="API.Constants" />
 		<Using Include="Domain.Exceptions" />
-		<Using Include="Domain.Common" />
 		<Using Include="Domain.Events" />
 		<Using Include="Domain.Constants" />
 		<Using Include="FluentValidation" />
