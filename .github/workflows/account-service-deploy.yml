@@ -1,0 +1,41 @@
+name: Deploy Account Service
+
+on:
+  push:
+    branches: [ main ]
+    paths: 
+      - .github/workflows/account-service-deploy.yml
+      - Eater.Shared/**
+      - AccountMicroservice/**
+
+env:
+  AZURE_FUNCTIONAPP_NAME: AccountSvcAPFctApp01              # set this to your application's name
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: './AccountMicroservice'   # set this to the path to your web app project, defaults to the repository root
+  DOTNET_VERSION: '6.0.x'                                   # set this to the dotnet version to use
+
+jobs:
+  build-and-deploy:
+    runs-on: windows-latest
+    steps:
+    - name: 'Checkout Repository'
+      uses: actions/checkout@master
+
+    - name: Setup .NET ${{ env.DOTNET_VERSION }} Environment
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: 'Build Project'
+      shell: pwsh
+      run: |
+        pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+        dotnet build --configuration Release --output ./output
+        popd
+
+    - name: 'Deploy to Azure Function App'
+      uses: Azure/functions-action@v1
+      id: fa
+      with:
+        app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+        package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
+        publish-profile: ${{ secrets.ACCOUNT_SVC_PUBLISH_PROFILE }}
