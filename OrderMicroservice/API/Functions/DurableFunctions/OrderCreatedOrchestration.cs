@@ -15,13 +15,11 @@ namespace API.Functions.DurableFunctions
     {
         private readonly IOrderRepository _orderRepository;
         private readonly DurableFunctionConfig _durableFunctionConfig;
-        private readonly IActiveOrderRepository _activeOrderRepository;
 
-        public OrderCreatedOrchestration(IOrderRepository orderRepository, IOptions<DurableFunctionConfig> durableFunctionConfig, IActiveOrderRepository activeOrderRepository)
+        public OrderCreatedOrchestration(IOrderRepository orderRepository, IOptions<DurableFunctionConfig> durableFunctionConfig)
         {
             _orderRepository = orderRepository;
             _durableFunctionConfig = durableFunctionConfig.Value;
-            _activeOrderRepository = activeOrderRepository;
         }
 
         private static void LogOrchestration(Order order, ILogger log, string message)
